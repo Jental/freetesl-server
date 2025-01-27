@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 
+	"github.com/jental/freetesl-server/models"
 	_ "github.com/lib/pq"
 	"golang.org/x/exp/maps"
-	"jental.name/tesl/models"
 )
 
 const CONNECTION_STRING = "host=localhost port=5432 user=postgres password=]Hy)*58)Np-2LrC9hD-( dbname=tesl sslmode=disable"

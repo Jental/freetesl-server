@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jental/freetesl-server/dtos"
 	"github.com/mitchellh/mapstructure"
-	"jental.name/tesl/dtos"
 )
 
 var addr = flag.String("addr", "localhost:8080", "http service address")

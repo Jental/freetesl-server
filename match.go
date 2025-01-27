@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/models"
 	"github.com/samber/lo"
-	"jental.name/tesl/dtos"
-	"jental.name/tesl/models"
 )
 
 var matches map[uuid.UUID]Match = nil

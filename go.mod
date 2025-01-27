@@ -1,4 +1,4 @@
-module jental.name/tesl
+module github.com/jental/freetesl-server
 
 go 1.23
 
