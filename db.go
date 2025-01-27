@@ -1,0 +1,59 @@
+package main
+
+import (
+	"database/sql"
+
+	_ "github.com/lib/pq"
+	"golang.org/x/exp/maps"
+	"jental.name/tesl/models"
+)
+
+const CONNECTION_STRING = "host=localhost port=5432 user=postgres password=]Hy)*58)Np-2LrC9hD-( dbname=tesl sslmode=disable"
+
+func getDecks(playerID int) ([]models.Deck, error) {
+	db, err := sql.Open("postgres", CONNECTION_STRING)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := db.Query(`
+		SELECT d.id as id, d.name as name, c.id as card_id, c.name as card_name, dc.count as count
+		FROM decks as d 
+		INNER JOIN deck_cards as dc ON dc.deck_id = d.id
+		INNER JOIN cards as c ON c.id = dc.card_id
+		WHERE d.player_id = $1
+	`, playerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	decks := make(map[int]models.Deck)
+
+	for rows.Next() {
+		var id int
+		var name string
+		var cardID int
+		var cardName string
+		var count int
+		if err := rows.Scan(&id, &name, &cardID, &cardName, &count); err != nil {
+			return nil, err
+		}
+
+		deck, exists := decks[id]
+		if !exists {
+			deck = models.Deck{ID: id, Name: name, Cards: make(map[int]models.CardWithCount)}
+			decks[id] = deck
+		}
+
+		deck.Cards[cardID] = models.CardWithCount{Card: models.Card{ID: cardID, Name: cardName, Description: "dscr", Power: 1, Defence: 1, Cost: 1}, Count: count}
+	}
+
+	return maps.Values(decks), nil
+}
