@@ -100,7 +100,10 @@ func startTestCardDraw(deckInstance []dtos.CardInstanceDTO, conn *websocket.Conn
 		hand = append(hand, drawnCard)
 		leftDeck = leftDeck[1:]
 
-		var matchState = dtos.PlayerMatchStateDTO{Hand: hand, Deck: leftDeck}
+		var health = 22
+		var runes uint8 = 4
+
+		var matchState = dtos.PlayerMatchStateDTO{Hand: hand, Deck: leftDeck, Health: health, Runes: runes}
 		var json = map[string]interface{}{
 			"method": "matchStateUpdate",
 			"body":   matchState,
