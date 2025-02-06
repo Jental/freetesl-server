@@ -44,10 +44,6 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		body, exists := request["body"]
-		if !exists {
-			log.Println("websocket read error: no body")
-			continue
-		}
 		log.Printf("recv: %s\n", method)
 
 		switch method {

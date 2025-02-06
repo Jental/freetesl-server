@@ -5,7 +5,7 @@ type Card struct {
 	Name        string
 	Description string
 	Power       int
-	Defence     int
+	Health      int
 	Cost        int
 	// class
 }

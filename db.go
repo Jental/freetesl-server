@@ -52,7 +52,7 @@ func getDecks(playerID int) ([]models.Deck, error) {
 			decks[id] = deck
 		}
 
-		deck.Cards[cardID] = models.CardWithCount{Card: models.Card{ID: cardID, Name: cardName, Description: "dscr", Power: 1, Defence: 1, Cost: 1}, Count: count}
+		deck.Cards[cardID] = models.CardWithCount{Card: models.Card{ID: cardID, Name: cardName, Description: "dscr", Power: 1, Health: 1, Cost: 1}, Count: count}
 	}
 
 	return maps.Values(decks), nil
