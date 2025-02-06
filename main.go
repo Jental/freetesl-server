@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/mitchellh/mapstructure"
 )
@@ -50,7 +51,7 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 		case "join":
 			var dto dtos.JoinRequestDTO
 			mapstructure.Decode(body, &dto)
-			go joinMatch(dto.PlayerID, Maybe[uuid.UUID]{HasValue: false}, c)
+			go joinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c)
 		}
 	}
 
