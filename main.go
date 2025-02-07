@@ -45,27 +45,20 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		body, exists := request["body"]
+		if !exists {
+			log.Printf("websocket read error:  body is expected. method: %s\n", method)
+		}
 		log.Printf("recv: %s\n", method)
 
 		switch method {
 		case "join":
 			var dto dtos.JoinRequestDTO
 			mapstructure.Decode(body, &dto)
-			go joinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c)
+			go joinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
+		case "endTurn":
+			var dto dtos.EndTurnRequestDTO
+			mapstructure.Decode(body, &dto)
+			go endTurn(dto.PlayerID)
 		}
 	}
-
-	// for {
-	// 	mt, message, err := c.Read()
-	// 	if err != nil {
-	// 		log.Println("read:", err)
-	// 		break
-	// 	}
-	// 	log.Printf("recv: %s", message)
-	// 	err = c.WriteMessage(mt, message)
-	// 	if err != nil {
-	// 		log.Println("write:", err)
-	// 		break
-	// 	}
-	// }
 }
