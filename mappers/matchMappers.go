@@ -15,12 +15,13 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 
 func MapToPlayerMatchStateDTO(model *models.PlayerMatchState2, ownTurn bool) dtos.PlayerMatchStateDTO {
 	return dtos.PlayerMatchStateDTO{
-		Deck:    lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Hand:    lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Health:  model.Health,
-		Runes:   model.Runes,
-		Mana:    model.Mana,
-		MaxMana: model.MaxMana,
-		OwnTurn: ownTurn,
+		Deck:          lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Hand:          lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Health:        model.Health,
+		Runes:         model.Runes,
+		Mana:          model.Mana,
+		MaxMana:       model.MaxMana,
+		OwnTurn:       ownTurn,
+		LeftLaneCards: lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
 	}
 }

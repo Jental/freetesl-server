@@ -239,6 +239,20 @@ func drawCard(playerState *models.PlayerMatchState2) {
 	playerState.Deck = playerState.Deck[1:]
 }
 
+func moveCardFromDeckToLeftLane(playerState *models.PlayerMatchState2) {
+	if len(playerState.LeftLaneCards) >= 4 {
+		return
+	}
+
+	if len(playerState.Deck) == 0 {
+		return // TODO: for now doing nothing, but later next rune should be broken
+	}
+
+	var movedCard = playerState.Deck[0]
+	playerState.LeftLaneCards = append(playerState.LeftLaneCards, movedCard)
+	playerState.Deck = playerState.Deck[1:]
+}
+
 func switchTurn(match *models.Match) {
 	var isFirstPlayersTurn = match.Player0State.Value.PlayerID == match.PlayerWithTurnID
 	if isFirstPlayersTurn {
@@ -280,6 +294,7 @@ func endTurn(playerID int) {
 	time.Sleep(3 * time.Second)
 	switchTurn(match)
 	drawCard(playerState)
+	moveCardFromDeckToLeftLane(playerState)
 	playerState.MaxMana = playerState.MaxMana + 1
 	playerState.Mana = playerState.MaxMana
 
