@@ -59,6 +59,15 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 			var dto dtos.EndTurnRequestDTO
 			mapstructure.Decode(body, &dto)
 			go endTurn(dto.PlayerID)
+		case "moveCardToLane":
+			var dto dtos.MoveCardToLaneRequestDTO
+			mapstructure.Decode(body, &dto)
+			cardInstanceID, err := uuid.Parse(dto.CardInstanceID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			go moveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
 		}
 	}
 }

@@ -7,4 +7,5 @@ type CardInstance struct {
 	CardInstanceID uuid.UUID
 	Power          int
 	Health         int
+	Cost           int
 }

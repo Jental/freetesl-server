@@ -53,6 +53,28 @@ func addMatch(match *models.Match, playerID int) {
 	playersToMatches[playerID] = match
 }
 
+func getCurrentMatchState(playerID int) (*models.Match, *models.PlayerMatchState2, error) {
+	match, exist := playersToMatches[playerID]
+	if !exist {
+		return nil, nil, fmt.Errorf("player with id '%d' have no active match", playerID)
+	}
+
+	if !match.Player0State.HasValue || !match.Player1State.HasValue {
+		return nil, nil, fmt.Errorf("match for player '%d' is not started yet - waiting for second party", playerID)
+	}
+
+	var playerState *models.PlayerMatchState2
+	if match.Player0State.Value.PlayerID == playerID {
+		playerState = match.Player0State.Value
+	} else if match.Player1State.Value.PlayerID == playerID {
+		playerState = match.Player1State.Value
+	} else {
+		return nil, nil, fmt.Errorf("match for player '%d' is started for different players. this should not happen", playerID)
+	}
+
+	return match, playerState, nil
+}
+
 func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.PlayerMatchState2, error) {
 	decks, err := getDecks(playerID)
 	if err != nil {
@@ -69,6 +91,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 						CardInstanceID: uuid.New(),
 						Power:          cardWithCount.Card.Power,
 						Health:         cardWithCount.Card.Health,
+						Cost:           cardWithCount.Card.Cost,
 					}
 				})
 			}))
@@ -263,29 +286,14 @@ func switchTurn(match *models.Match) {
 }
 
 func endTurn(playerID int) {
-	match, exist := playersToMatches[playerID]
-	if !exist {
-		fmt.Println(fmt.Errorf("player with id '%d' have no active match", playerID))
-		return
-	}
-
-	if !match.Player0State.HasValue || !match.Player1State.HasValue {
-		fmt.Println(fmt.Errorf("match for player '%d' is not started yet - waiting for second party", playerID))
-		return
-	}
-
-	var playerState *models.PlayerMatchState2
-	if match.Player0State.Value.PlayerID == playerID {
-		playerState = match.Player0State.Value
-	} else if match.Player1State.Value.PlayerID == playerID {
-		playerState = match.Player1State.Value
-	} else {
-		fmt.Println(fmt.Errorf("match for player '%d' is started for different players. this should not happen", playerID))
+	match, playerState, err := getCurrentMatchState(playerID)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
 	switchTurn(match)
-	var err = sendMatchStateToEveryone(match)
+	err = sendMatchStateToEveryone(match)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -297,6 +305,51 @@ func endTurn(playerID int) {
 	moveCardFromDeckToLeftLane(playerState)
 	playerState.MaxMana = playerState.MaxMana + 1
 	playerState.Mana = playerState.MaxMana
+
+	err = sendMatchStateToEveryone(match)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func moveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
+	match, playerState, err := getCurrentMatchState(playerID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	var idx = slices.IndexFunc(playerState.Hand, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+	if idx < 0 {
+		fmt.Println(fmt.Errorf("card instance with id '%s' is not present in a hand of a player '%d'", cardInstanceID, playerID))
+		return
+	}
+	var cardInstance = playerState.Hand[idx]
+
+	if cardInstance.Cost > playerState.Mana {
+		fmt.Println(fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, playerState.Mana))
+
+		err = sendMatchStateToEveryone(match)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		return
+	}
+
+	if laneID == common.LEFT_LANE_ID {
+		playerState.LeftLaneCards = append(playerState.LeftLaneCards, cardInstance)
+	} else if laneID == common.RIGHT_LANE_ID {
+		// playerState.RightLaneCards = append(playerState.LeftLaneCards, cardInstance)
+	} else {
+		fmt.Println(fmt.Errorf("invali lane id: %d", laneID))
+		return
+	}
+
+	playerState.Hand = slices.Delete(playerState.Hand, idx, idx+1)
+
+	playerState.Mana = playerState.Mana - cardInstance.Cost
 
 	err = sendMatchStateToEveryone(match)
 	if err != nil {
