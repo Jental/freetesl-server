@@ -23,7 +23,7 @@ func getDecks(playerID int) ([]models.Deck, error) {
 	}
 
 	rows, err := db.Query(`
-		SELECT d.id as id, d.name as name, c.id as card_id, c.name as card_name, dc.count as count
+		SELECT d.id as id, d.name as name, c.id as card_id, c.name as card_name, c.power as card_power, c.defence as card_defence, c.cost as card_cost, dc.count as count
 		FROM decks as d 
 		INNER JOIN deck_cards as dc ON dc.deck_id = d.id
 		INNER JOIN cards as c ON c.id = dc.card_id
@@ -41,8 +41,11 @@ func getDecks(playerID int) ([]models.Deck, error) {
 		var name string
 		var cardID int
 		var cardName string
+		var cardPower int
+		var cardDefence int
+		var cardCost int
 		var count int
-		if err := rows.Scan(&id, &name, &cardID, &cardName, &count); err != nil {
+		if err := rows.Scan(&id, &name, &cardID, &cardName, &cardPower, &cardDefence, &cardCost, &count); err != nil {
 			return nil, err
 		}
 
@@ -52,7 +55,17 @@ func getDecks(playerID int) ([]models.Deck, error) {
 			decks[id] = deck
 		}
 
-		deck.Cards[cardID] = models.CardWithCount{Card: models.Card{ID: cardID, Name: cardName, Description: "dscr", Power: 1, Health: 1, Cost: 1}, Count: count}
+		deck.Cards[cardID] = models.CardWithCount{
+			Card: models.Card{
+				ID:          cardID,
+				Name:        cardName,
+				Description: "dscr",
+				Power:       cardPower,
+				Health:      cardDefence,
+				Cost:        cardCost,
+			},
+			Count: count,
+		}
 	}
 
 	return maps.Values(decks), nil
