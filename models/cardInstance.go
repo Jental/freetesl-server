@@ -8,4 +8,5 @@ type CardInstance struct {
 	Power          int
 	Health         int
 	Cost           int
+	IsActive       bool
 }

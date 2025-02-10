@@ -12,6 +12,7 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 	return dtos.CardInstanceDTO{
 		CardID:         model.Card.ID,
 		CardInstanceID: model.CardInstanceID,
+		IsActive:       model.IsActive,
 	}
 }
 

@@ -93,12 +93,17 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 						Power:          cardWithCount.Card.Power,
 						Health:         cardWithCount.Card.Health,
 						Cost:           cardWithCount.Card.Cost,
+						IsActive:       false,
 					}
 				})
 			}))
 
 	var hand []*models.CardInstance = deckInstance[:3]
 	var leftDeck = deckInstance[3:]
+
+	for _, card := range hand {
+		card.IsActive = true
+	}
 
 	return models.PlayerMatchState2{
 		PlayerID:   playerID,
@@ -369,6 +374,7 @@ func drawCard(playerState *models.PlayerMatchState2) {
 	}
 
 	var drawnCard = playerState.Deck[0]
+	drawnCard.IsActive = true
 	playerState.Hand = append(playerState.Hand, drawnCard)
 	playerState.Deck = playerState.Deck[1:]
 }
@@ -395,6 +401,11 @@ func endTurn(playerID int) {
 	time.Sleep(3 * time.Second)
 	switchTurn(match)
 	drawCard(playerState)
+
+	for _, card := range playerState.LeftLaneCards {
+		card.IsActive = true
+	}
+
 	playerState.MaxMana = playerState.MaxMana + 1
 	playerState.Mana = playerState.MaxMana
 
@@ -438,8 +449,8 @@ func moveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 		return
 	}
 
+	cardInstance.IsActive = false
 	playerState.Hand = slices.Delete(playerState.Hand, idx, idx+1)
-
 	playerState.Mana = playerState.Mana - cardInstance.Cost
 
 	sendMatchStateToEveryone(match)
