@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/common"
+	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/mappers"
 	"github.com/jental/freetesl-server/models"
 	"github.com/samber/lo"
@@ -207,25 +208,133 @@ func joinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 		}
 	}
 
+	sendMatchInformationToEveryone(&match)
 	sendMatchStateToEveryone(&match)
 }
 
-func sendMatchStateToEveryone(match *models.Match) error {
+func getOpponentID(match *models.Match, playerID int) (int, bool, error) {
+	if match.Player0State.HasValue && match.Player1State.HasValue {
+		if match.Player0State.Value.PlayerID == playerID {
+			return match.Player1State.Value.PlayerID, true, nil
+		} else if match.Player1State.Value.PlayerID == playerID {
+			return match.Player0State.Value.PlayerID, true, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else if match.Player0State.HasValue {
+		if match.Player0State.Value.PlayerID == playerID {
+			return -1, false, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else if match.Player1State.HasValue {
+		if match.Player1State.Value.PlayerID == playerID {
+			return -1, false, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else {
+		return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+	}
+}
+
+func sendMatchInformationToEveryone(match *models.Match) {
 	if match.Player0State.HasValue {
-		err := sendMatchStateToPlayer(match.Player0State.Value, match)
-		if err != nil {
-			return err
+		go sendMatchInformationToPlayerWithErrorHandling(match.Player0State.Value, match)
+	}
+	if match.Player0State.HasValue {
+		go sendMatchInformationToPlayerWithErrorHandling(match.Player1State.Value, match)
+	}
+}
+
+func sendMatchInformationToPlayerWithErrorHandling(playerState *models.PlayerMatchState2, match *models.Match) {
+	var err = sendMatchInformationToPlayer(playerState, match)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func sendMatchInformationToPlayer(playerState *models.PlayerMatchState2, match *models.Match) error {
+	if playerState.Connection == nil {
+		return nil // Fake opponent has nil connection. TODO: the check should be removed
+	}
+
+	var playerID = playerState.PlayerID
+	opponentID, opponentExists, err := getOpponentID(match, playerID)
+	if err != nil {
+		return err
+	}
+
+	var playerIDs []int
+	if opponentExists {
+		playerIDs = []int{playerID, opponentID}
+	} else {
+		playerIDs = []int{playerID}
+	}
+	players, err := getPlayers(playerIDs)
+	if err != nil {
+		return err
+	}
+
+	player, exists := players[playerID]
+	if !exists {
+		return fmt.Errorf("player with id '%d' is not found", playerID)
+	}
+	var opponent *models.Player
+	if opponentExists {
+		opponent, exists = players[opponentID]
+		if !exists {
+			return fmt.Errorf("player with id '%d' is not found", opponentID)
 		}
 	}
 
-	if match.Player1State.HasValue {
-		err := sendMatchStateToPlayer(match.Player1State.Value, match)
-		if err != nil {
-			return err
+	var dto = dtos.MatchInformationDTO{
+		Player: &dtos.PlayerInformationDTO{
+			Name:       player.DisplayName,
+			AvatarName: player.AvatarName,
+		},
+	}
+	if opponentExists {
+		dto.Opponent = &dtos.PlayerInformationDTO{
+			Name:       opponent.DisplayName,
+			AvatarName: opponent.AvatarName,
 		}
+	} else {
+		dto.Opponent = nil
+	}
+
+	var json = map[string]interface{}{
+		"method": "matchInformationUpdate",
+		"body":   dto,
+	}
+
+	// TODO: each active player should have two queues:
+	// - of requests from client to be processed
+	// - of messages from server
+	//   ideally with some filtration to avoid sending multiple matchStates one after another
+	err = playerState.Connection.WriteJSON(json)
+	if err != nil {
+		return err
 	}
 
 	return nil
+}
+
+func sendMatchStateToEveryone(match *models.Match) {
+	if match.Player0State.HasValue {
+		go sendMatchStateToPlayerWithErrorHandling(match.Player0State.Value, match)
+	}
+
+	if match.Player1State.HasValue {
+		go sendMatchStateToPlayerWithErrorHandling(match.Player1State.Value, match)
+	}
+}
+
+func sendMatchStateToPlayerWithErrorHandling(playerState *models.PlayerMatchState2, match *models.Match) {
+	var err = sendMatchStateToPlayer(playerState, match)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func sendMatchStateToPlayer(playerState *models.PlayerMatchState2, match *models.Match) error {
@@ -233,18 +342,20 @@ func sendMatchStateToPlayer(playerState *models.PlayerMatchState2, match *models
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
 
-	var ownTurn = playerState.PlayerID == match.PlayerWithTurnID
-	var playerStateDTO = mappers.MapToPlayerMatchStateDTO(playerState, ownTurn)
+	var dto, err = mappers.MapToMatchStateDTO(match, playerState.PlayerID)
+	if err != nil {
+		return err
+	}
 	var json = map[string]interface{}{
 		"method": "matchStateUpdate",
-		"body":   playerStateDTO,
+		"body":   dto,
 	}
 
 	// TODO: each active player should have two queues:
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	err := playerState.Connection.WriteJSON(json)
+	err = playerState.Connection.WriteJSON(json)
 	if err != nil {
 		return err
 	}
@@ -259,20 +370,6 @@ func drawCard(playerState *models.PlayerMatchState2) {
 
 	var drawnCard = playerState.Deck[0]
 	playerState.Hand = append(playerState.Hand, drawnCard)
-	playerState.Deck = playerState.Deck[1:]
-}
-
-func moveCardFromDeckToLeftLane(playerState *models.PlayerMatchState2) {
-	if len(playerState.LeftLaneCards) >= 4 {
-		return
-	}
-
-	if len(playerState.Deck) == 0 {
-		return // TODO: for now doing nothing, but later next rune should be broken
-	}
-
-	var movedCard = playerState.Deck[0]
-	playerState.LeftLaneCards = append(playerState.LeftLaneCards, movedCard)
 	playerState.Deck = playerState.Deck[1:]
 }
 
@@ -293,24 +390,15 @@ func endTurn(playerID int) {
 	}
 
 	switchTurn(match)
-	err = sendMatchStateToEveryone(match)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	sendMatchStateToEveryone(match)
 
 	time.Sleep(3 * time.Second)
 	switchTurn(match)
 	drawCard(playerState)
-	moveCardFromDeckToLeftLane(playerState)
 	playerState.MaxMana = playerState.MaxMana + 1
 	playerState.Mana = playerState.MaxMana
 
-	err = sendMatchStateToEveryone(match)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	sendMatchStateToEveryone(match)
 }
 
 func moveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
@@ -329,18 +417,21 @@ func moveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 
 	if cardInstance.Cost > playerState.Mana {
 		fmt.Println(fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, playerState.Mana))
-
-		err = sendMatchStateToEveryone(match)
-		if err != nil {
-			fmt.Println(err)
-		}
-
+		sendMatchStateToEveryone(match)
 		return
 	}
 
 	if laneID == common.LEFT_LANE_ID {
+		if len(playerState.LeftLaneCards) >= common.MAX_LANE_CARDS {
+			fmt.Println(fmt.Errorf("lane is already full"))
+			return
+		}
 		playerState.LeftLaneCards = append(playerState.LeftLaneCards, cardInstance)
 	} else if laneID == common.RIGHT_LANE_ID {
+		// if len(playerState.RightLaneCards) >= common.MAX_LANE_CARDS {
+		// 	fmt.Println(fmt.Errorf("lane is already full"))
+		// 	return
+		// }
 		// playerState.RightLaneCards = append(playerState.LeftLaneCards, cardInstance)
 	} else {
 		fmt.Println(fmt.Errorf("invali lane id: %d", laneID))
@@ -351,9 +442,5 @@ func moveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 
 	playerState.Mana = playerState.Mana - cardInstance.Cost
 
-	err = sendMatchStateToEveryone(match)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	sendMatchStateToEveryone(match)
 }

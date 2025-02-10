@@ -1,6 +1,6 @@
-INSERT INTO players (login, password, display_name)
-VALUES ('player0', null, 'Test player 0'),
-       ('player1', null, 'Test player 1');
+INSERT INTO players (login, password, display_name, avatar_name)
+VALUES ('player0', null, 'Test player 0', 'DBH_NPC_CRDL_02_022_avatar_png'),
+       ('player1', null, 'Test player 1', 'crdl_04_119_avatar_png');
 
 INSERT INTO decks (name, player_id)
 VALUES ('Test deck 0', 1),

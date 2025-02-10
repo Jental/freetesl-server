@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/mitchellh/mapstructure v1.5.0
 	golang.org/x/text v0.16.0 // indirect
 )

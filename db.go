@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/jental/freetesl-server/models"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"golang.org/x/exp/maps"
 )
@@ -69,4 +70,52 @@ func getDecks(playerID int) ([]models.Deck, error) {
 	}
 
 	return maps.Values(decks), nil
+}
+
+func getPlayers(playerIDs []int) (map[int]*models.Player, error) {
+	db, err := sql.Open("postgres", CONNECTION_STRING)
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	// var playerIDsStr = strings.Replace(strings.Trim(fmt.Sprint(playerIDs), "[]"), " ", ", ", -1)
+	query, args, err := sqlx.In(`
+		SELECT p.id, p.display_name, p.avatar_name
+		FROM players as p 
+		WHERE p.id in (?)
+	`, playerIDs)
+	if err != nil {
+		return nil, err
+	}
+	query = sqlx.Rebind(sqlx.DOLLAR, query)
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[int]*models.Player)
+
+	for rows.Next() {
+		var id int
+		var displayName string
+		var avatarName string
+		if err := rows.Scan(&id, &displayName, &avatarName); err != nil {
+			return nil, err
+		}
+
+		result[id] = &models.Player{
+			ID:          id,
+			DisplayName: displayName,
+			AvatarName:  avatarName,
+		}
+	}
+
+	return result, nil
 }

@@ -7,6 +7,5 @@ type PlayerMatchStateDTO struct {
 	Runes         uint8             `json:"runes"`
 	Mana          int               `json:"mana"`
 	MaxMana       int               `json:"maxMana"`
-	OwnTurn       bool              `json:"ownTurn"`
 	LeftLaneCards []CardInstanceDTO `json:"leftLaneCards"`
 }

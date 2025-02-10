@@ -42,7 +42,8 @@ CREATE TABLE players (
     id serial PRIMARY KEY,
     login varchar(255) NOT NULL UNIQUE,
     password varchar(255),
-    display_name varchar(255)
+    display_name varchar(255),
+    avatar_name varchar(255)
 );
 
 CREATE TABLE decks (
