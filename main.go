@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/match/handlers"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -54,11 +55,11 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 		case "join":
 			var dto dtos.JoinRequestDTO
 			mapstructure.Decode(body, &dto)
-			go joinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
+			go handlers.JoinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
 		case "endTurn":
 			var dto dtos.EndTurnRequestDTO
 			mapstructure.Decode(body, &dto)
-			go endTurn(dto.PlayerID)
+			go handlers.EndTurn(dto.PlayerID)
 		case "moveCardToLane":
 			var dto dtos.MoveCardToLaneRequestDTO
 			mapstructure.Decode(body, &dto)
@@ -67,7 +68,7 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				continue
 			}
-			go moveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
+			go handlers.MoveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
 		}
 	}
 }

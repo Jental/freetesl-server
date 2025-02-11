@@ -1,0 +1,99 @@
+package match
+
+import (
+	"fmt"
+	"sync"
+
+	"github.com/google/uuid"
+	"github.com/jental/freetesl-server/models"
+)
+
+var matches map[uuid.UUID]*models.Match = nil
+var playersToMatches map[int]*models.Match = nil
+var once sync.Once
+var mutex sync.Mutex
+
+func createMatchesIfNeeded() {
+	once.Do(func() {
+		var m = make(map[uuid.UUID]*models.Match)
+		matches = m
+
+		var p = make(map[int]*models.Match)
+		playersToMatches = p
+	})
+}
+
+func GetMatch(matchID uuid.UUID) (*models.Match, bool) {
+	createMatchesIfNeeded()
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	match, exist := matches[matchID]
+	return match, exist
+}
+
+func AddOrRefreshMatch(match *models.Match) {
+	createMatchesIfNeeded()
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	matches[match.Id] = match
+
+	if match.Player0State.HasValue {
+		playersToMatches[match.Player0State.Value.PlayerID] = match
+	}
+
+	if match.Player1State.HasValue {
+		playersToMatches[match.Player1State.Value.PlayerID] = match
+	}
+}
+
+func GetCurrentMatchState(playerID int) (*models.Match, *models.PlayerMatchState2, error) {
+	match, exist := playersToMatches[playerID]
+	if !exist {
+		return nil, nil, fmt.Errorf("player with id '%d' have no active match", playerID)
+	}
+
+	if !match.Player0State.HasValue || !match.Player1State.HasValue {
+		return nil, nil, fmt.Errorf("match for player '%d' is not started yet - waiting for second party", playerID)
+	}
+
+	var playerState *models.PlayerMatchState2
+	if match.Player0State.Value.PlayerID == playerID {
+		playerState = match.Player0State.Value
+	} else if match.Player1State.Value.PlayerID == playerID {
+		playerState = match.Player1State.Value
+	} else {
+		return nil, nil, fmt.Errorf("match for player '%d' is started for different players. this should not happen", playerID)
+	}
+
+	return match, playerState, nil
+}
+
+func GetOpponentID(match *models.Match, playerID int) (int, bool, error) {
+	if match.Player0State.HasValue && match.Player1State.HasValue {
+		if match.Player0State.Value.PlayerID == playerID {
+			return match.Player1State.Value.PlayerID, true, nil
+		} else if match.Player1State.Value.PlayerID == playerID {
+			return match.Player0State.Value.PlayerID, true, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else if match.Player0State.HasValue {
+		if match.Player0State.Value.PlayerID == playerID {
+			return -1, false, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else if match.Player1State.HasValue {
+		if match.Player1State.Value.PlayerID == playerID {
+			return -1, false, nil
+		} else {
+			return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+		}
+	} else {
+		return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
+	}
+}

@@ -1,9 +1,12 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"github.com/jental/freetesl-server/db/models"
+)
 
 type CardInstance struct {
-	Card           Card
+	Card           models.Card
 	CardInstanceID uuid.UUID
 	Power          int
 	Health         int

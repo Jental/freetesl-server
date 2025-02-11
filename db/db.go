@@ -1,9 +1,9 @@
-package main
+package db
 
 import (
 	"database/sql"
 
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/db/models"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"golang.org/x/exp/maps"
@@ -11,7 +11,7 @@ import (
 
 const CONNECTION_STRING = "host=localhost port=5432 user=postgres password=]Hy)*58)Np-2LrC9hD-( dbname=tesl sslmode=disable"
 
-func getDecks(playerID int) ([]models.Deck, error) {
+func GetDecks(playerID int) ([]models.Deck, error) {
 	db, err := sql.Open("postgres", CONNECTION_STRING)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func getDecks(playerID int) ([]models.Deck, error) {
 	return maps.Values(decks), nil
 }
 
-func getPlayers(playerIDs []int) (map[int]*models.Player, error) {
+func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 	db, err := sql.Open("postgres", CONNECTION_STRING)
 	if err != nil {
 		return nil, err
