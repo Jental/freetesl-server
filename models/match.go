@@ -11,4 +11,5 @@ type Match struct {
 	Player0State     common.Maybe[PlayerMatchState2]
 	Player1State     common.Maybe[PlayerMatchState2]
 	PlayerWithTurnID int
+	WinnerID         int
 }

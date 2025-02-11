@@ -8,7 +8,6 @@ import (
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/senders"
-	"github.com/jental/freetesl-server/models"
 )
 
 func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
@@ -18,12 +17,11 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 		return
 	}
 
-	var idx = slices.IndexFunc(playerState.Hand, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
-	if idx < 0 {
-		fmt.Println(fmt.Errorf("card instance with id '%s' is not present in a hand of a player '%d'", cardInstanceID, playerID))
+	cardInstance, idx, err := match.GetCardInstanceFromHand(playerState, cardInstanceID)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
-	var cardInstance = playerState.Hand[idx]
 
 	if cardInstance.Cost > playerState.Mana {
 		fmt.Println(fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, playerState.Mana))

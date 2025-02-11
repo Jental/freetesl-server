@@ -69,6 +69,15 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			go handlers.MoveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
+		case "hitFace":
+			var dto dtos.HitFaceDTO
+			mapstructure.Decode(body, &dto)
+			cardInstanceID, err := uuid.Parse(dto.CardInstanceID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			go handlers.HitFace(dto.PlayerID, cardInstanceID)
 		}
 	}
 }

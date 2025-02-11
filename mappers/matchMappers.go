@@ -51,3 +51,9 @@ func MapToMatchStateDTO(model *models.Match, playerID int) (*dtos.MatchStateDTO,
 		OwnTurn:  model.PlayerWithTurnID == playerID,
 	}, nil
 }
+
+func MapToMatchEndDTO(model *models.Match, playerID int) dtos.MatchEndDTO {
+	return dtos.MatchEndDTO{
+		HasWon: model.WinnerID == playerID,
+	}
+}

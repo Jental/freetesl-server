@@ -98,6 +98,7 @@ func createNewMatchForPlayer(playerID int, conn *websocket.Conn) (*models.Match,
 		},
 		// PlayerWithTurnID: common.NONE_PLAYER_ID,
 		PlayerWithTurnID: playerID, // since we've created an opponent, match can be started. TODO: remove
+		WinnerID:         -1,
 	}
 
 	match.AddOrRefreshMatch(&matchState)

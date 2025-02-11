@@ -2,9 +2,11 @@ package match
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/models"
 )
 
@@ -12,6 +14,11 @@ var matches map[uuid.UUID]*models.Match = nil
 var playersToMatches map[int]*models.Match = nil
 var once sync.Once
 var mutex sync.Mutex
+
+var CardInstanceLastHit *models.CardInstance = nil
+var CardInstanceLastEndTurned *models.CardInstance = nil
+var PlayerLastHit *models.PlayerMatchState2 = nil
+var PlayerLastEndTurned *models.PlayerMatchState2 = nil
 
 func createMatchesIfNeeded() {
 	once.Do(func() {
@@ -96,4 +103,21 @@ func GetOpponentID(match *models.Match, playerID int) (int, bool, error) {
 	} else {
 		return -1, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
 	}
+}
+
+func GetCardInstanceFromHand(playerState *models.PlayerMatchState2, cardInstanceID uuid.UUID) (*models.CardInstance, int, error) {
+	var idx = slices.IndexFunc(playerState.Hand, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+	if idx < 0 {
+		return nil, -1, fmt.Errorf("card instance with id '%s' is not present in a hand of a player '%d'", cardInstanceID, playerState.PlayerID)
+	}
+	return playerState.Hand[idx], idx, nil
+}
+
+func GetCardInstanceFromLanes(playerState *models.PlayerMatchState2, cardInstanceID uuid.UUID) (*models.CardInstance, byte, int, error) {
+	var idx = slices.IndexFunc(playerState.LeftLaneCards, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+	if idx < 0 {
+		// TODO: search in right lane too
+		return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)
+	}
+	return playerState.LeftLaneCards[idx], common.LEFT_LANE_ID, idx, nil
 }
