@@ -13,6 +13,9 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 		CardID:         model.Card.ID,
 		CardInstanceID: model.CardInstanceID,
 		IsActive:       model.IsActive,
+		Power:          model.Power,
+		Health:         model.Health,
+		Cost:           model.Cost,
 	}
 }
 
