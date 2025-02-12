@@ -2,53 +2,34 @@ package handlers
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/google/uuid"
-	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/actions"
 	"github.com/jental/freetesl-server/match/senders"
 )
 
 func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
-	matchState, playerState, err := match.GetCurrentMatchState(playerID)
+	matchState, playerState, _, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Println(err)
+		senders.SendMatchStateToEveryone(matchState)
 		return
 	}
 
 	cardInstance, idx, err := match.GetCardInstanceFromHand(playerState, cardInstanceID)
 	if err != nil {
 		fmt.Println(err)
-		return
-	}
-
-	if cardInstance.Cost > playerState.Mana {
-		fmt.Println(fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, playerState.Mana))
 		senders.SendMatchStateToEveryone(matchState)
 		return
 	}
 
-	if laneID == common.LEFT_LANE_ID {
-		if len(playerState.LeftLaneCards) >= common.MAX_LANE_CARDS {
-			fmt.Println(fmt.Errorf("lane is already full"))
-			return
-		}
-		playerState.LeftLaneCards = append(playerState.LeftLaneCards, cardInstance)
-	} else if laneID == common.RIGHT_LANE_ID {
-		// if len(playerState.RightLaneCards) >= common.MAX_LANE_CARDS {
-		// 	fmt.Println(fmt.Errorf("lane is already full"))
-		// 	return
-		// }
-		// playerState.RightLaneCards = append(playerState.LeftLaneCards, cardInstance)
-	} else {
-		fmt.Println(fmt.Errorf("invali lane id: %d", laneID))
+	err = actions.MoveCardToLane(playerState, cardInstance, idx, laneID)
+	if err != nil {
+		fmt.Println(err)
+		senders.SendMatchStateToEveryone(matchState)
 		return
 	}
-
-	cardInstance.IsActive = false
-	playerState.Hand = slices.Delete(playerState.Hand, idx, idx+1)
-	playerState.Mana = playerState.Mana - cardInstance.Cost
 
 	senders.SendMatchStateToEveryone(matchState)
 }

@@ -15,11 +15,6 @@ var playersToMatches map[int]*models.Match = nil
 var once sync.Once
 var mutex sync.Mutex
 
-var CardInstanceLastHit *models.CardInstance = nil
-var CardInstanceLastEndTurned *models.CardInstance = nil
-var PlayerLastHit *models.PlayerMatchState2 = nil
-var PlayerLastEndTurned *models.PlayerMatchState2 = nil
-
 func createMatchesIfNeeded() {
 	once.Do(func() {
 		var m = make(map[uuid.UUID]*models.Match)
@@ -57,26 +52,28 @@ func AddOrRefreshMatch(match *models.Match) {
 	}
 }
 
-func GetCurrentMatchState(playerID int) (*models.Match, *models.PlayerMatchState2, error) {
+func GetCurrentMatchState(playerID int) (*models.Match, *models.PlayerMatchState2, *models.PlayerMatchState2, error) {
 	match, exist := playersToMatches[playerID]
 	if !exist {
-		return nil, nil, fmt.Errorf("player with id '%d' have no active match", playerID)
+		return nil, nil, nil, fmt.Errorf("player with id '%d' have no active match", playerID)
 	}
 
 	if !match.Player0State.HasValue || !match.Player1State.HasValue {
-		return nil, nil, fmt.Errorf("match for player '%d' is not started yet - waiting for second party", playerID)
+		return nil, nil, nil, fmt.Errorf("match for player '%d' is not started yet - waiting for second party", playerID)
 	}
 
-	var playerState *models.PlayerMatchState2
+	var playerState, opponentState *models.PlayerMatchState2
 	if match.Player0State.Value.PlayerID == playerID {
 		playerState = match.Player0State.Value
+		opponentState = match.Player1State.Value
 	} else if match.Player1State.Value.PlayerID == playerID {
 		playerState = match.Player1State.Value
+		opponentState = match.Player0State.Value
 	} else {
-		return nil, nil, fmt.Errorf("match for player '%d' is started for different players. this should not happen", playerID)
+		return nil, nil, nil, fmt.Errorf("match for player '%d' is started for different players. this should not happen", playerID)
 	}
 
-	return match, playerState, nil
+	return match, playerState, opponentState, nil
 }
 
 func GetOpponentID(match *models.Match, playerID int) (int, bool, error) {
@@ -115,9 +112,14 @@ func GetCardInstanceFromHand(playerState *models.PlayerMatchState2, cardInstance
 
 func GetCardInstanceFromLanes(playerState *models.PlayerMatchState2, cardInstanceID uuid.UUID) (*models.CardInstance, byte, int, error) {
 	var idx = slices.IndexFunc(playerState.LeftLaneCards, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
-	if idx < 0 {
-		// TODO: search in right lane too
-		return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)
+	if idx >= 0 {
+		return playerState.LeftLaneCards[idx], common.LEFT_LANE_ID, idx, nil
 	}
-	return playerState.LeftLaneCards[idx], common.LEFT_LANE_ID, idx, nil
+
+	idx = slices.IndexFunc(playerState.RightLaneCards, func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+	if idx >= 0 {
+		return playerState.RightLaneCards[idx], common.RIGHT_LANE_ID, idx, nil
+	}
+
+	return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)
 }

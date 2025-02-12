@@ -1,6 +1,11 @@
 package actions
 
 import (
+	"errors"
+	"fmt"
+	"slices"
+
+	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match/senders"
 	"github.com/jental/freetesl-server/models"
 )
@@ -23,6 +28,32 @@ func SwitchTurn(match *models.Match) {
 	} else {
 		match.PlayerWithTurnID = match.Player0State.Value.PlayerID
 	}
+}
+
+func MoveCardToLane(playerState *models.PlayerMatchState2, cardInstance *models.CardInstance, cardInHandIdx int, laneID byte) error {
+	if cardInstance.Cost > playerState.Mana {
+		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, playerState.Mana)
+	}
+
+	if laneID == common.LEFT_LANE_ID {
+		if len(playerState.LeftLaneCards) >= common.MAX_LANE_CARDS {
+			return errors.New("lane is already full")
+		}
+		playerState.LeftLaneCards = append(playerState.LeftLaneCards, cardInstance)
+	} else if laneID == common.RIGHT_LANE_ID {
+		if len(playerState.RightLaneCards) >= common.MAX_LANE_CARDS {
+			return errors.New("lane is already full")
+		}
+		playerState.RightLaneCards = append(playerState.RightLaneCards, cardInstance)
+	} else {
+		return fmt.Errorf("invalid lane id: %d", laneID)
+	}
+
+	cardInstance.IsActive = false
+	playerState.Hand = slices.Delete(playerState.Hand, cardInHandIdx, cardInHandIdx+1)
+	playerState.Mana = playerState.Mana - cardInstance.Cost
+
+	return nil
 }
 
 func ReducePlayerHealth(playerState *models.PlayerMatchState2, matchState *models.Match, amount int) {

@@ -7,23 +7,12 @@ import (
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/actions"
 	"github.com/jental/freetesl-server/match/senders"
-	"github.com/jental/freetesl-server/models"
 )
 
 func HitFace(playerID int, cardInstanceID uuid.UUID) {
-	matchState, playerState, err := match.GetCurrentMatchState(playerID)
+	matchState, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Println(err)
-		return
-	}
-
-	var opponentState *models.PlayerMatchState2
-	if matchState.Player0State.Value == playerState {
-		opponentState = matchState.Player1State.Value
-	} else if matchState.Player1State.Value == playerState {
-		opponentState = matchState.Player0State.Value
-	} else {
-		fmt.Println(fmt.Errorf("player with id '%d' is not a part of a match", playerID))
 		return
 	}
 

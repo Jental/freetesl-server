@@ -18,13 +18,14 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 
 func MapToPlayerMatchStateDTO(model *models.PlayerMatchState2) dtos.PlayerMatchStateDTO {
 	return dtos.PlayerMatchStateDTO{
-		Deck:          lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Hand:          lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Health:        model.Health,
-		Runes:         model.Runes,
-		Mana:          model.Mana,
-		MaxMana:       model.MaxMana,
-		LeftLaneCards: lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Deck:           lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Hand:           lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Health:         model.Health,
+		Runes:          model.Runes,
+		Mana:           model.Mana,
+		MaxMana:        model.MaxMana,
+		LeftLaneCards:  lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		RightLaneCards: lo.Map(model.RightLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
 	}
 }
 

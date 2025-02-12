@@ -10,28 +10,41 @@ import (
 )
 
 func EndTurn(playerID int) {
-	matchState, playerState, err := match.GetCurrentMatchState(playerID)
+	matchState, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
 	actions.SwitchTurn(matchState)
+	opponentState.MaxMana = opponentState.MaxMana + 1
+	opponentState.Mana = opponentState.MaxMana
+	actions.DrawCard(opponentState)
+	actions.PlayRandomCards(opponentState)
+
+	for _, card := range playerState.LeftLaneCards {
+		card.IsActive = false
+	}
+	for _, card := range playerState.RightLaneCards {
+		card.IsActive = false
+	}
+
 	senders.SendMatchStateToEveryone(matchState)
 
 	time.Sleep(3 * time.Second)
+
 	actions.SwitchTurn(matchState)
 	actions.DrawCard(playerState)
 
 	for _, card := range playerState.LeftLaneCards {
 		card.IsActive = true
-		match.CardInstanceLastEndTurned = card
+	}
+	for _, card := range playerState.RightLaneCards {
+		card.IsActive = true
 	}
 
 	playerState.MaxMana = playerState.MaxMana + 1
 	playerState.Mana = playerState.MaxMana
-
-	match.PlayerLastEndTurned = playerState
 
 	senders.SendMatchStateToEveryone(matchState)
 }
