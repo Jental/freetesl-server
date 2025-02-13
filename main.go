@@ -78,6 +78,21 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			go handlers.HitFace(dto.PlayerID, cardInstanceID)
+		case "hitCard":
+			var dto dtos.HitCardDTO
+			mapstructure.Decode(body, &dto)
+			cardInstanceID, err := uuid.Parse(dto.CardInstanceID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			opponentCardInstanceID, err := uuid.Parse(dto.OpponentCardInstanceID)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			go handlers.HitCard(dto.PlayerID, cardInstanceID, opponentCardInstanceID)
 		}
 	}
 }

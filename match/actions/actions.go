@@ -70,3 +70,35 @@ func ReducePlayerHealth(playerState *models.PlayerMatchState2, matchState *model
 		// TODO: there'll be an exception with a Vivec card in play later
 	}
 }
+
+func ReduceCardHealth(cardInstance *models.CardInstance, laneID byte, playerState *models.PlayerMatchState2, matchState *models.Match, amount int) error {
+	cardInstance.Health = cardInstance.Health - amount
+
+	if cardInstance.Health <= 0 {
+		if laneID == common.LEFT_LANE_ID {
+			var idx = slices.Index(playerState.LeftLaneCards, cardInstance)
+			if idx < 0 {
+				return errors.New("player does have the card in a left lane.")
+			}
+
+			playerState.LeftLaneCards = slices.Delete(playerState.LeftLaneCards, idx, idx+1)
+			playerState.DiscardPile = append(playerState.DiscardPile, cardInstance)
+			return nil
+
+		} else if laneID == common.RIGHT_LANE_ID {
+			var idx = slices.Index(playerState.RightLaneCards, cardInstance)
+			if idx < 0 {
+				return errors.New("player does have the card in a right lane.")
+			}
+
+			playerState.RightLaneCards = slices.Delete(playerState.RightLaneCards, idx, idx+1)
+			playerState.DiscardPile = append(playerState.DiscardPile, cardInstance)
+			return nil
+
+		} else {
+			return fmt.Errorf("invalid lane ID: %d", laneID)
+		}
+	}
+
+	return nil
+}

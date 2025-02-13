@@ -9,4 +9,5 @@ type PlayerMatchStateDTO struct {
 	MaxMana        int               `json:"maxMana"`
 	LeftLaneCards  []CardInstanceDTO `json:"leftLaneCards"`
 	RightLaneCards []CardInstanceDTO `json:"rightLaneCards"`
+	DiscardPile    []CardInstanceDTO `json:"discardPile"`
 }

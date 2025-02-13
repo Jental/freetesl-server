@@ -52,14 +52,17 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 	}
 
 	return models.PlayerMatchState2{
-		PlayerID:   playerID,
-		Connection: conn,
-		Deck:       leftDeck,
-		Hand:       hand,
-		Health:     30,
-		Runes:      5,
-		Mana:       1,
-		MaxMana:    1,
+		PlayerID:       playerID,
+		Connection:     conn,
+		Deck:           leftDeck,
+		Hand:           hand,
+		LeftLaneCards:  []*models.CardInstance{},
+		RightLaneCards: []*models.CardInstance{},
+		DiscardPile:    []*models.CardInstance{},
+		Health:         30,
+		Runes:          5,
+		Mana:           1,
+		MaxMana:        1,
 	}, nil
 }
 

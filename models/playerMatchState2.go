@@ -7,6 +7,7 @@ type PlayerMatchState2 struct {
 	Connection     *websocket.Conn
 	Deck           []*CardInstance
 	Hand           []*CardInstance
+	DiscardPile    []*CardInstance
 	Health         int
 	Runes          uint8
 	Mana           int

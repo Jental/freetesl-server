@@ -29,6 +29,7 @@ func MapToPlayerMatchStateDTO(model *models.PlayerMatchState2) dtos.PlayerMatchS
 		MaxMana:        model.MaxMana,
 		LeftLaneCards:  lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
 		RightLaneCards: lo.Map(model.RightLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		DiscardPile:    lo.Map(model.DiscardPile, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
 	}
 }
 
