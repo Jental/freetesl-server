@@ -22,20 +22,37 @@ CREATE TABLE races (
     name varchar(255) NOT NULL
 );
 
+CREATE TABLE card_types (
+    id int NOT NULL PRIMARY KEY,
+    name varchar(255) NOT NULL
+)
+
+CREATE TABLE keywords (
+    id int NOT NULL PRIMARY KEY,
+    name varchar(255) NOT NULL
+)
+
 CREATE TABLE cards (
     id serial PRIMARY KEY,
     name varchar(255) NOT NULL,
     description varchar(1023) NOT NULL,
     power int NOT NULL,
-    defence int NOT NULL,
+    health int NOT NULL,
     cost int NOT NULL,
-    class_id int NOT NULL REFERENCES classes(id)
+    class_id int NOT NULL REFERENCES classes(id),
+    type_id int NOT NULL REFERENCES card_types(id)
 );
 
 CREATE TABLE card_races (
     card_id int NOT NULL REFERENCES cards(id),
     race_id int NOT NULL REFERENCES races(id),
     PRIMARY KEY (card_id, race_id)
+);
+
+CREATE TABLE card_keywords (
+    card_id int NOT NULL REFERENCES cards(id),
+    keyword_id int NOT NULL REFERENCES keywords(id),
+    PRIMARY KEY (card_id, keyword_id)
 );
 
 CREATE TABLE players (

@@ -102,3 +102,20 @@ VALUES (1, 'argonian'),
        (8, 'orc'),
        (9, 'redguard'),
        (10, 'wood elf');
+
+INSERT INTO card_types (id, name)
+VALUES (1, 'action'),
+       (2, 'creature'),
+       (3, 'item'),
+       (4, 'support');
+
+INSERT INTO keywords (id, name)
+VALUES (1, 'breakthrough'),
+       (2, 'charge'),
+       (3, 'drain'),
+       (4, 'guard'),
+       (5, 'lethal'),
+       (6, 'mobilize'),
+       (7, 'rally'),
+       (8, 'regenerate'),
+       (9, 'ward');
