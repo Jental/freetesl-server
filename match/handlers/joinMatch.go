@@ -181,4 +181,6 @@ func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 	senders.SendMatchInformationToEveryone(matchState)
 	senders.SendAllCardInstancesToEveryone(matchState)
 	senders.SendMatchStateToEveryone(matchState)
+	senders.SendDeckToEveryone(matchState)
+	senders.SendDiscardPileToEveryone(matchState)
 }
