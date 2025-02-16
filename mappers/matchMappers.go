@@ -12,24 +12,40 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 	return dtos.CardInstanceDTO{
 		CardID:         model.Card.ID,
 		CardInstanceID: model.CardInstanceID,
-		IsActive:       model.IsActive,
 		Power:          model.Power,
 		Health:         model.Health,
 		Cost:           model.Cost,
 	}
 }
 
+func MapToCardInstanceStateDTO(model *models.CardInstance) dtos.CardInstanceStateDTO {
+	return dtos.CardInstanceStateDTO{
+		CardInstanceID: model.CardInstanceID,
+		IsActive:       model.IsActive,
+	}
+}
+
 func MapToPlayerMatchStateDTO(model *models.PlayerMatchState2) dtos.PlayerMatchStateDTO {
 	return dtos.PlayerMatchStateDTO{
-		Deck:           lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Hand:           lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		Health:         model.Health,
-		Runes:          model.Runes,
-		Mana:           model.Mana,
-		MaxMana:        model.MaxMana,
-		LeftLaneCards:  lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		RightLaneCards: lo.Map(model.RightLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
-		DiscardPile:    lo.Map(model.DiscardPile, func(item *models.CardInstance, i int) dtos.CardInstanceDTO { return MapToCardInstanceDTO(item) }),
+		Deck: lo.Map(model.Deck, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+			return MapToCardInstanceStateDTO(item)
+		}),
+		Hand: lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+			return MapToCardInstanceStateDTO(item)
+		}),
+		Health:  model.Health,
+		Runes:   model.Runes,
+		Mana:    model.Mana,
+		MaxMana: model.MaxMana,
+		LeftLaneCards: lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+			return MapToCardInstanceStateDTO(item)
+		}),
+		RightLaneCards: lo.Map(model.RightLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+			return MapToCardInstanceStateDTO(item)
+		}),
+		DiscardPile: lo.Map(model.DiscardPile, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+			return MapToCardInstanceStateDTO(item)
+		}),
 	}
 }
 
