@@ -19,6 +19,7 @@ func EndTurn(playerID int) {
 	actions.SwitchTurn(matchState)
 	opponentState.MaxMana = opponentState.MaxMana + 1
 	opponentState.Mana = opponentState.MaxMana
+	time.Sleep(1 * time.Second)
 	actions.DrawCard(opponentState)
 	actions.PlayRandomCards(opponentState)
 
@@ -30,8 +31,7 @@ func EndTurn(playerID int) {
 	}
 
 	senders.SendMatchStateToEveryone(matchState)
-
-	time.Sleep(3 * time.Second)
+	senders.SendDeckToEveryone(matchState)
 
 	actions.SwitchTurn(matchState)
 	actions.DrawCard(playerState)
@@ -47,4 +47,5 @@ func EndTurn(playerID int) {
 	playerState.Mana = playerState.MaxMana
 
 	senders.SendMatchStateToEveryone(matchState)
+	senders.SendDeckToEveryone(matchState)
 }

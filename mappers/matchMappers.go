@@ -3,6 +3,7 @@ package mappers
 import (
 	"fmt"
 
+	"github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models"
 	"github.com/samber/lo"
@@ -15,6 +16,7 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 		Power:          model.Power,
 		Health:         model.Health,
 		Cost:           model.Cost,
+		Keywords:       lo.Map(model.Keywords, func(kwd enums.CardKeyword, _ int) int { return int(kwd) }),
 	}
 }
 

@@ -39,6 +39,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 						Power:          cardWithCount.Card.Power,
 						Health:         cardWithCount.Card.Health,
 						Cost:           cardWithCount.Card.Cost,
+						Keywords:       cardWithCount.Card.Keywords,
 						IsActive:       false,
 					}
 				})

@@ -83,6 +83,8 @@ func ReduceCardHealth(cardInstance *models.CardInstance, laneID byte, playerStat
 
 			playerState.LeftLaneCards = slices.Delete(playerState.LeftLaneCards, idx, idx+1)
 			playerState.DiscardPile = append(playerState.DiscardPile, cardInstance)
+			// senders.SendDiscardPileToEveryone(matchState) - I don't like it
+			// TODO: trigger some event, based on which it will be decided which updates to send
 			return nil
 
 		} else if laneID == common.RIGHT_LANE_ID {

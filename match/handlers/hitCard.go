@@ -48,4 +48,5 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 	cardInstance.IsActive = false
 
 	senders.SendMatchStateToEveryone(matchState)
+	senders.SendDiscardPileToEveryone(matchState)
 }

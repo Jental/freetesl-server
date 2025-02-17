@@ -1,7 +1,7 @@
 package dtos
 
 type CardDTO struct {
-	ID       int   `json:"cardID"`
+	ID       int   `json:"id"`
 	Power    int   `json:"power"`
 	Health   int   `json:"health"`
 	Cost     int   `json:"cost"`
