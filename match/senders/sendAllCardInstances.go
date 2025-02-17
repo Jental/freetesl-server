@@ -1,9 +1,7 @@
 package senders
 
 import (
-	"errors"
 	"fmt"
-	"slices"
 
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/mappers"
@@ -11,36 +9,15 @@ import (
 	"github.com/samber/lo"
 )
 
-func SendAllCardInstancesToEveryone(match *models.Match) {
-	cards, err := getAllCardInstances(match)
+func SendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, matchState *models.Match) error {
+	cards, err := getAllCardInstances(matchState)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
+	// TODO: SendAllCardInstancesToPlayer will be called twice - for player and for opponent => getAllCardInstances will be called twice too, which is not good
+	//       maybe, we can pass instances with events
 
-	var errChan = make(chan error)
-
-	if match.Player0State.HasValue {
-		go func() {
-			errChan <- sendAllCardInstancesToPlayer(match.Player0State.Value, cards)
-		}()
-	}
-
-	if match.Player1State.HasValue {
-		go func() {
-			errChan <- sendAllCardInstancesToPlayer(match.Player1State.Value, cards)
-		}()
-	}
-
-	var aggErrors = []error{
-		<-errChan,
-		<-errChan,
-	}
-
-	var errorsPresent = slices.IndexFunc(aggErrors, func(err error) bool { return err != nil }) >= 0
-	if errorsPresent {
-		fmt.Println(errors.Join(aggErrors...))
-	}
+	return sendAllCardInstancesToPlayer(playerState, cards)
 }
 
 func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []*models.CardInstance) error {

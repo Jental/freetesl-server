@@ -26,6 +26,8 @@ func StartListeningBackendEvents(playerState *models.PlayerMatchState, matchStat
 			SendMatchStateToPlayer(playerState, matchState)
 		case enums.BackendEventDiscardPileChanged, enums.BackendEventOpponentDiscardPileChanged:
 			SendDiscardPileStateToPlayer(playerState, matchState)
+		case enums.BackendEventCardInstancesChanged, enums.BackendEventOpponentCardInstancesChanged:
+			SendAllCardInstancesToPlayer(playerState, matchState)
 		case enums.BackendEventMatchEnd:
 			SendMatchEndToPlayer(playerState, matchState)
 		}
