@@ -7,23 +7,6 @@ import (
 	"github.com/jental/freetesl-server/models"
 )
 
-func sendMatchStateToEveryone(match *models.Match) {
-	if match.Player0State.HasValue {
-		go sendMatchStateToPlayerWithErrorHandling(match.Player0State.Value, match)
-	}
-
-	if match.Player1State.HasValue {
-		go sendMatchStateToPlayerWithErrorHandling(match.Player1State.Value, match)
-	}
-}
-
-func sendMatchStateToPlayerWithErrorHandling(playerState *models.PlayerMatchState, match *models.Match) {
-	var err = SendMatchStateToPlayer(playerState, match)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 func SendMatchStateToPlayer(playerState *models.PlayerMatchState, match *models.Match) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed

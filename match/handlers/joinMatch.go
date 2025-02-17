@@ -219,7 +219,6 @@ func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 	go senders.StartListeningBackendEvents(opponentState, matchState)
 
 	senders.SendAllCardsToEveryone(matchState)
-	senders.SendMatchInformationToEveryone(matchState)
 	senders.SendAllCardInstancesToEveryone(matchState)
 	playerState.Events <- enums.BackendEventHandChanged
 	if opponentState != nil {
