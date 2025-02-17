@@ -13,6 +13,10 @@ func StartListeningBackendEvents(playerState *models.PlayerMatchState, matchStat
 
 		fmt.Printf("event: [%d]: %s\n", playerState.PlayerID, enums.BackendEventTypeName[event])
 
+		// TODO: calculate dto hashes and don't do resent if dto has not changed
+		//       + maybe some throttling will be a good ided
+		//         collect events during some small interval, and send onlu unique messages after
+
 		switch event {
 		case enums.BackendEventDeckChanged, enums.BackendEventOpponentDeckChanged:
 			SendDeckStateToPlayer(playerState, matchState)
