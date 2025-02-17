@@ -7,11 +7,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/actions"
-	"github.com/jental/freetesl-server/match/senders"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid.UUID) {
-	matchState, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
+	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -39,7 +39,7 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
-	err = actions.ReduceCardHealth(opponentCardInstance, opponentLaneID, opponentState, matchState, cardInstance.Power)
+	err = actions.ReduceCardHealth(opponentState, opponentCardInstance, opponentLaneID, cardInstance.Power)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -47,6 +47,6 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 
 	cardInstance.IsActive = false
 
-	senders.SendMatchStateToEveryone(matchState)
-	senders.SendDiscardPileToEveryone(matchState)
+	playerState.Events <- enums.BackendEventLanesChanged
+	opponentState.Events <- enums.BackendEventLanesChanged
 }

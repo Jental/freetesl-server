@@ -4,7 +4,7 @@ import (
 	"github.com/jental/freetesl-server/models"
 )
 
-func isGuardPresentInLane(playerState *models.PlayerMatchState2, laneID byte) bool {
+func isGuardPresentInLane(playerState *models.PlayerMatchState, laneID byte) bool {
 	// var lane []*models.CardInstance
 	// if laneID == common.LEFT_LANE_ID {
 	// 	lane = playerState.LeftLaneCards

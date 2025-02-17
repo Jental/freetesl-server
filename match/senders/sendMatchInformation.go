@@ -19,14 +19,14 @@ func SendMatchInformationToEveryone(match *models.Match) {
 	}
 }
 
-func sendMatchInformationToPlayerWithErrorHandling(playerState *models.PlayerMatchState2, match *models.Match) {
+func sendMatchInformationToPlayerWithErrorHandling(playerState *models.PlayerMatchState, match *models.Match) {
 	var err = sendMatchInformationToPlayer(playerState, match)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func sendMatchInformationToPlayer(playerState *models.PlayerMatchState2, matchState *models.Match) error {
+func sendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchState *models.Match) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
@@ -88,6 +88,8 @@ func sendMatchInformationToPlayer(playerState *models.PlayerMatchState2, matchSt
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("sent: [%d]: matchInformationUpdate\n", playerState.PlayerID)
 
 	return nil
 }

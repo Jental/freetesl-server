@@ -6,11 +6,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/actions"
-	"github.com/jental/freetesl-server/match/senders"
 )
 
 func HitFace(playerID int, cardInstanceID uuid.UUID) {
-	matchState, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
+	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -27,8 +26,6 @@ func HitFace(playerID int, cardInstanceID uuid.UUID) {
 		return
 	}
 
-	actions.ReducePlayerHealth(opponentState, matchState, cardInstance.Power)
+	actions.ReducePlayerHealth(opponentState, cardInstance.Power)
 	cardInstance.IsActive = false
-
-	senders.SendMatchStateToEveryone(matchState)
 }

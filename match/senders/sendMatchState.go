@@ -7,7 +7,7 @@ import (
 	"github.com/jental/freetesl-server/models"
 )
 
-func SendMatchStateToEveryone(match *models.Match) {
+func sendMatchStateToEveryone(match *models.Match) {
 	if match.Player0State.HasValue {
 		go sendMatchStateToPlayerWithErrorHandling(match.Player0State.Value, match)
 	}
@@ -17,14 +17,14 @@ func SendMatchStateToEveryone(match *models.Match) {
 	}
 }
 
-func sendMatchStateToPlayerWithErrorHandling(playerState *models.PlayerMatchState2, match *models.Match) {
-	var err = sendMatchStateToPlayer(playerState, match)
+func sendMatchStateToPlayerWithErrorHandling(playerState *models.PlayerMatchState, match *models.Match) {
+	var err = SendMatchStateToPlayer(playerState, match)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func sendMatchStateToPlayer(playerState *models.PlayerMatchState2, match *models.Match) error {
+func SendMatchStateToPlayer(playerState *models.PlayerMatchState, match *models.Match) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
@@ -46,6 +46,8 @@ func sendMatchStateToPlayer(playerState *models.PlayerMatchState2, match *models
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("sent: [%d]: matchStateUpdate\n", playerState.PlayerID)
 
 	return nil
 }

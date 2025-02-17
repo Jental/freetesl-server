@@ -43,7 +43,7 @@ func SendAllCardsToEveryone(match *models.Match) {
 	}
 }
 
-func sendAllCardsToPlayer(playerState *models.PlayerMatchState2, cards []*dbModels.Card) error {
+func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModels.Card) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
@@ -62,6 +62,8 @@ func sendAllCardsToPlayer(playerState *models.PlayerMatchState2, cards []*dbMode
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("sent: [%d]: allCards\n", playerState.PlayerID)
 
 	return nil
 }

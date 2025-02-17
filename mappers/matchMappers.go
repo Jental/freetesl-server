@@ -27,27 +27,27 @@ func MapToCardInstanceStateDTO(model *models.CardInstance) dtos.CardInstanceStat
 	}
 }
 
-func MapToPlayerMatchStateDTO(model *models.PlayerMatchState2) dtos.PlayerMatchStateDTO {
+func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchStateDTO {
 	return dtos.PlayerMatchStateDTO{
-		Health:  model.Health,
-		Runes:   model.Runes,
-		Mana:    model.Mana,
-		MaxMana: model.MaxMana,
-		Hand: lo.Map(model.Hand, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		Health:  model.GetHealth(),
+		Runes:   model.GetRunes(),
+		Mana:    model.GetMana(),
+		MaxMana: model.GetMaxMana(),
+		Hand: lo.Map(model.GetHand(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
-		LeftLaneCards: lo.Map(model.LeftLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		LeftLaneCards: lo.Map(model.GetLeftLaneCards(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
-		RightLaneCards: lo.Map(model.RightLaneCards, func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		RightLaneCards: lo.Map(model.GetRightLaneCards(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
 	}
 }
 
 func MapToMatchStateDTO(model *models.Match, playerID int) (*dtos.MatchStateDTO, error) {
-	var playerState *models.PlayerMatchState2
-	var opponentState *models.PlayerMatchState2 = nil
+	var playerState *models.PlayerMatchState
+	var opponentState *models.PlayerMatchState = nil
 	if model.Player0State.HasValue && model.Player0State.Value.PlayerID == playerID {
 		playerState = model.Player0State.Value
 		if model.Player1State.HasValue {
@@ -70,8 +70,8 @@ func MapToMatchStateDTO(model *models.Match, playerID int) (*dtos.MatchStateDTO,
 }
 
 func MapToDeckStateDTO(model *models.Match, playerID int) (*dtos.DeckStateDTO, error) {
-	var playerState *models.PlayerMatchState2
-	var opponentState *models.PlayerMatchState2 = nil
+	var playerState *models.PlayerMatchState
+	var opponentState *models.PlayerMatchState = nil
 	if model.Player0State.HasValue && model.Player0State.Value.PlayerID == playerID {
 		playerState = model.Player0State.Value
 		if model.Player1State.HasValue {
@@ -87,11 +87,11 @@ func MapToDeckStateDTO(model *models.Match, playerID int) (*dtos.DeckStateDTO, e
 	}
 
 	return &dtos.DeckStateDTO{
-		Player: lo.Map(playerState.Deck, func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Player: lo.Map(playerState.GetDeck(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
-		Opponent: lo.Map(opponentState.Deck, func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Opponent: lo.Map(opponentState.GetDeck(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
@@ -99,8 +99,8 @@ func MapToDeckStateDTO(model *models.Match, playerID int) (*dtos.DeckStateDTO, e
 }
 
 func MapToDiscardPileStateDTO(model *models.Match, playerID int) (*dtos.DiscardPileStateDTO, error) {
-	var playerState *models.PlayerMatchState2
-	var opponentState *models.PlayerMatchState2 = nil
+	var playerState *models.PlayerMatchState
+	var opponentState *models.PlayerMatchState = nil
 	if model.Player0State.HasValue && model.Player0State.Value.PlayerID == playerID {
 		playerState = model.Player0State.Value
 		if model.Player1State.HasValue {
@@ -116,11 +116,11 @@ func MapToDiscardPileStateDTO(model *models.Match, playerID int) (*dtos.DiscardP
 	}
 
 	return &dtos.DiscardPileStateDTO{
-		Player: lo.Map(playerState.DiscardPile, func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Player: lo.Map(playerState.GetDiscardPile(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
-		Opponent: lo.Map(opponentState.DiscardPile, func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Opponent: lo.Map(opponentState.GetDiscardPile(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),

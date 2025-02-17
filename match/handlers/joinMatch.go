@@ -17,15 +17,16 @@ import (
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/senders"
 	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/models/enums"
 	"github.com/samber/lo"
 )
 
 var rnd rand.Rand = *rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.PlayerMatchState2, error) {
+func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.PlayerMatchState, error) {
 	decks, err := db.GetDecks(playerID)
 	if err != nil {
-		return models.PlayerMatchState2{}, err
+		return models.PlayerMatchState{}, err
 	}
 
 	var deckInstance []*models.CardInstance = lo.Shuffle(
@@ -52,19 +53,21 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 		card.IsActive = true
 	}
 
-	return models.PlayerMatchState2{
-		PlayerID:       playerID,
-		Connection:     conn,
-		Deck:           leftDeck,
-		Hand:           hand,
-		LeftLaneCards:  []*models.CardInstance{},
-		RightLaneCards: []*models.CardInstance{},
-		DiscardPile:    []*models.CardInstance{},
-		Health:         30,
-		Runes:          5,
-		Mana:           1,
-		MaxMana:        1,
-	}, nil
+	var playerState = models.NewPlayerMatchState(
+		playerID,
+		30,
+		5,
+		1,
+		1,
+		leftDeck,
+		hand,
+		[]*models.CardInstance{},
+		[]*models.CardInstance{},
+		[]*models.CardInstance{},
+		conn,
+	)
+
+	return playerState, nil
 }
 
 func selectRandomPlayer(player0ID int, player1ID int) int {
@@ -73,6 +76,22 @@ func selectRandomPlayer(player0ID int, player1ID int) int {
 		return player0ID
 	} else {
 		return player1ID
+	}
+}
+
+func updateMatchPlayerFields(matchState *models.Match) {
+	if matchState.Player0State.HasValue {
+		matchState.Player0State.Value.MatchState = matchState
+		if matchState.Player1State.HasValue {
+			matchState.Player0State.Value.OpponentState = matchState.Player1State.Value
+		}
+	}
+
+	if matchState.Player1State.HasValue {
+		matchState.Player1State.Value.MatchState = matchState
+		if matchState.Player0State.HasValue {
+			matchState.Player1State.Value.OpponentState = matchState.Player0State.Value
+		}
 	}
 }
 
@@ -92,11 +111,11 @@ func createNewMatchForPlayer(playerID int, conn *websocket.Conn) (*models.Match,
 
 	var matchState = models.Match{
 		Id: uuid.New(),
-		Player0State: common.Maybe[models.PlayerMatchState2]{
+		Player0State: common.Maybe[models.PlayerMatchState]{
 			HasValue: true,
 			Value:    &playerState,
 		},
-		Player1State: common.Maybe[models.PlayerMatchState2]{
+		Player1State: common.Maybe[models.PlayerMatchState]{
 			HasValue: true,
 			Value:    &player1State,
 		},
@@ -106,19 +125,25 @@ func createNewMatchForPlayer(playerID int, conn *websocket.Conn) (*models.Match,
 	}
 
 	match.AddOrRefreshMatch(&matchState)
+	updateMatchPlayerFields(&matchState)
 
 	return &matchState, nil
 }
 
 func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Conn) {
 	var matchState *models.Match
+	var playerState *models.PlayerMatchState
+	var opponentState *models.PlayerMatchState
 	var err error
+
 	if !matchID.HasValue {
 		matchState, err = createNewMatchForPlayer(playerID, conn)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+		playerState = matchState.Player0State.Value
+		opponentState = matchState.Player1State.Value
 	} else {
 		var exist bool
 		matchState, exist = match.GetMatch(*matchID.Value)
@@ -132,20 +157,24 @@ func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 
 		} else if matchState.Player0State.HasValue && matchState.Player0State.Value.PlayerID == playerID {
 			matchState.Player0State.Value.Connection = conn // updating connection just in case
+			playerState = matchState.Player0State.Value
+			opponentState = matchState.Player1State.Value
 
 		} else if matchState.Player1State.HasValue && matchState.Player1State.Value.PlayerID == playerID {
 			matchState.Player1State.Value.Connection = conn // updating connection just in case
+			playerState = matchState.Player1State.Value
+			opponentState = matchState.Player0State.Value
 
 		} else if !matchState.Player0State.HasValue {
 			// we are joining as first player
-			playerState, err := createInitialPlayerMatchState(playerID, conn)
+			newPlayerState, err := createInitialPlayerMatchState(playerID, conn)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-			matchState.Player0State = common.Maybe[models.PlayerMatchState2]{
+			matchState.Player0State = common.Maybe[models.PlayerMatchState]{
 				HasValue: true,
-				Value:    &playerState,
+				Value:    &newPlayerState,
 			}
 
 			if !matchState.Player1State.HasValue {
@@ -156,16 +185,19 @@ func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 
 			match.AddOrRefreshMatch(matchState)
 
+			playerState = matchState.Player0State.Value
+			opponentState = nil
+
 		} else if !matchState.Player1State.HasValue {
 			// we are joining as second player
-			playerState, err := createInitialPlayerMatchState(playerID, conn)
+			newPlayerState, err := createInitialPlayerMatchState(playerID, conn)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-			matchState.Player1State = common.Maybe[models.PlayerMatchState2]{
+			matchState.Player1State = common.Maybe[models.PlayerMatchState]{
 				HasValue: true,
-				Value:    &playerState,
+				Value:    &newPlayerState,
 			}
 
 			if !matchState.Player0State.HasValue {
@@ -175,13 +207,30 @@ func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Co
 			}
 
 			match.AddOrRefreshMatch(matchState)
+
+			playerState = matchState.Player1State.Value
+			opponentState = matchState.Player0State.Value
 		}
+
+		updateMatchPlayerFields(matchState)
 	}
+
+	go senders.StartListeningBackendEvents(playerState, matchState)
+	go senders.StartListeningBackendEvents(opponentState, matchState)
 
 	senders.SendAllCardsToEveryone(matchState)
 	senders.SendMatchInformationToEveryone(matchState)
 	senders.SendAllCardInstancesToEveryone(matchState)
-	senders.SendMatchStateToEveryone(matchState)
-	senders.SendDeckToEveryone(matchState)
-	senders.SendDiscardPileToEveryone(matchState)
+	playerState.Events <- enums.BackendEventHandChanged
+	if opponentState != nil {
+		opponentState.Events <- enums.BackendEventOpponentHandChanged
+	}
+	playerState.Events <- enums.BackendEventDeckChanged
+	if opponentState != nil {
+		opponentState.Events <- enums.BackendEventOpponentDeckChanged
+	}
+	playerState.Events <- enums.BackendEventDiscardPileChanged
+	if opponentState != nil {
+		opponentState.Events <- enums.BackendEventOpponentDiscardPileChanged
+	}
 }

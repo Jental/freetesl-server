@@ -6,7 +6,6 @@ import (
 
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/actions"
-	"github.com/jental/freetesl-server/match/senders"
 )
 
 func EndTurn(playerID int) {
@@ -17,35 +16,29 @@ func EndTurn(playerID int) {
 	}
 
 	actions.SwitchTurn(matchState)
-	opponentState.MaxMana = opponentState.MaxMana + 1
-	opponentState.Mana = opponentState.MaxMana
+	opponentState.SetMaxMana(opponentState.GetMaxMana() + 1)
+	opponentState.SetMana(opponentState.GetMaxMana())
 	time.Sleep(1 * time.Second)
 	actions.DrawCard(opponentState)
-	actions.PlayRandomCards(opponentState)
+	actions.PlayRandomCards(opponentState, playerState, matchState)
 
-	for _, card := range playerState.LeftLaneCards {
+	for _, card := range opponentState.GetLeftLaneCards() {
 		card.IsActive = false
 	}
-	for _, card := range playerState.RightLaneCards {
+	for _, card := range opponentState.GetRightLaneCards() {
 		card.IsActive = false
 	}
-
-	senders.SendMatchStateToEveryone(matchState)
-	senders.SendDeckToEveryone(matchState)
 
 	actions.SwitchTurn(matchState)
 	actions.DrawCard(playerState)
 
-	for _, card := range playerState.LeftLaneCards {
+	for _, card := range playerState.GetLeftLaneCards() {
 		card.IsActive = true
 	}
-	for _, card := range playerState.RightLaneCards {
+	for _, card := range playerState.GetRightLaneCards() {
 		card.IsActive = true
 	}
 
-	playerState.MaxMana = playerState.MaxMana + 1
-	playerState.Mana = playerState.MaxMana
-
-	senders.SendMatchStateToEveryone(matchState)
-	senders.SendDeckToEveryone(matchState)
+	playerState.SetMaxMana(playerState.GetMaxMana() + 1)
+	playerState.SetMana(playerState.GetMaxMana())
 }

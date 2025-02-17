@@ -109,7 +109,7 @@ func GetAllCards() ([]*models.Card, error) {
 	return cardValues, nil
 }
 
-func GetDecks(playerID int) ([]models.Deck, error) {
+func GetDecks(playerID int) ([]*models.Deck, error) {
 	db, err := openAndTestConnection()
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func GetDecks(playerID int) ([]models.Deck, error) {
 	}
 	defer rows.Close()
 
-	decks := make(map[int]models.Deck)
+	decks := make(map[int]*models.Deck)
 
 	for rows.Next() {
 		var id int
@@ -144,8 +144,9 @@ func GetDecks(playerID int) ([]models.Deck, error) {
 
 		deck, exists := decks[id]
 		if !exists {
-			deck = models.Deck{ID: id, Name: name, Cards: make(map[int]models.CardWithCount)}
-			decks[id] = deck
+			var newDeck = models.Deck{ID: id, Name: name, Cards: make(map[int]models.CardWithCount)}
+			deck = &newDeck
+			decks[id] = &newDeck
 		}
 
 		deck.Cards[cardID] = models.CardWithCount{

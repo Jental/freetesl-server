@@ -43,7 +43,7 @@ func SendAllCardInstancesToEveryone(match *models.Match) {
 	}
 }
 
-func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState2, cards []*models.CardInstance) error {
+func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []*models.CardInstance) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
@@ -63,6 +63,8 @@ func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState2, cards [
 		return err
 	}
 
+	fmt.Printf("sent: [%d]: allCardInstances\n", playerState.PlayerID)
+
 	return nil
 }
 
@@ -77,12 +79,12 @@ func getAllCardInstances(matchState *models.Match) ([]*models.CardInstance, erro
 	return append(player0CardInstances, player1CardInstances...), nil
 }
 
-func getAllCardInstancesFromPlayer(playerState *models.PlayerMatchState2) []*models.CardInstance {
+func getAllCardInstancesFromPlayer(playerState *models.PlayerMatchState) []*models.CardInstance {
 	var result []*models.CardInstance
-	result = append(result, playerState.Deck...)
-	result = append(result, playerState.Hand...)
-	result = append(result, playerState.LeftLaneCards...)
-	result = append(result, playerState.RightLaneCards...)
-	result = append(result, playerState.DiscardPile...)
+	result = append(result, playerState.GetDeck()...)
+	result = append(result, playerState.GetHand()...)
+	result = append(result, playerState.GetLeftLaneCards()...)
+	result = append(result, playerState.GetRightLaneCards()...)
+	result = append(result, playerState.GetDiscardPile()...)
 	return result
 }
