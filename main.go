@@ -16,7 +16,7 @@ func main() {
 	log.SetFlags(0)
 
 	http.HandleFunc("/login", appHandlers.Login)
-	http.HandleFunc("/ws", matchHandlers.ConnectAndJoinMatch)
+	http.Handle("/ws", appHandlers.AuthCheckMiddleware(http.HandlerFunc(matchHandlers.ConnectAndJoinMatch)))
 
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }

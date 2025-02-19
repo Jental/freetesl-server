@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,8 +13,7 @@ import (
 	"github.com/jental/freetesl-server/dtos"
 )
 
-var jwtKey = []byte("my_secret_key")
-var tokens []string
+var jwtKey = []byte("jkh7hlkjg56'jkl")
 
 type Claims struct {
 	Username string `json:"username"`
@@ -59,4 +59,50 @@ func generateJWT(login string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString(jwtKey)
+}
+
+func verifyJWT(token string) (bool, int) {
+	claims := &Claims{}
+	parsed, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			return false, http.StatusUnauthorized
+		} else {
+			return false, http.StatusBadRequest
+		}
+	}
+
+	if !parsed.Valid {
+		return false, http.StatusUnauthorized
+	}
+
+	return true, http.StatusOK
+}
+
+func AuthCheckMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		log.Printf("AuthCheckMiddleware: req: %s", req.URL)
+
+		fullAuthHeader := req.Header.Get("Authorization")
+		var valid bool = false
+		var statusCode int = http.StatusUnauthorized
+		if fullAuthHeader != "" {
+			parts := strings.Split(fullAuthHeader, " ")
+			if len(parts) > 1 {
+				token := parts[1]
+				valid, statusCode = verifyJWT(token)
+			}
+		}
+
+		if !valid {
+			log.Printf("AuthCheckMiddleware: req: %s: unathorized", req.URL)
+			w.WriteHeader(statusCode)
+			return
+		}
+
+		next.ServeHTTP(w, req)
+	})
 }
