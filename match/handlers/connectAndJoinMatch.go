@@ -13,8 +13,20 @@ import (
 
 var upgrader = websocket.Upgrader{} // use default options
 
-func ConnectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
-	c, err := upgrader.Upgrade(w, r, nil)
+func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
+	contextVal := req.Context().Value("userID")
+	if contextVal == nil {
+		log.Println("player id is not found in a context")
+		return
+	}
+	playerID, ok := contextVal.(int)
+	if !ok {
+		log.Println("player id from a context has invalid type")
+		return
+	}
+	log.Printf("Player id: %d", playerID)
+
+	c, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {
 		log.Println("upgrade error:", err)
 		return
@@ -24,16 +36,19 @@ func ConnectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		var request map[string]interface{}
+
 		err := c.ReadJSON(&request)
 		if err != nil {
 			log.Println("websocket read error:", err)
 			continue
 		}
+
 		method, exists := request["method"]
 		if !exists {
 			log.Println("websocket read error: unknown method")
 			continue
 		}
+
 		body, exists := request["body"]
 		if !exists {
 			log.Printf("websocket read error:  body is expected. method: %s\n", method)

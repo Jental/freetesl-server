@@ -207,36 +207,35 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 	return result, nil
 }
 
-func VerifyUser(login string, passowrdSha512 string) bool {
+func VerifyUser(login string, passowrdSha512 string) (bool, *int) {
 	db, err := openAndTestConnection()
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return false, nil
 	}
 
 	rows, err := db.Query(`
-		SELECT count(*) as count
+		SELECT id
 		FROM players
 		WHERE login = $1 AND password = $2
 	`, login, passowrdSha512)
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return false, nil
 	}
 	defer rows.Close()
 
 	exists := rows.Next()
 	if !exists {
-		fmt.Println(fmt.Errorf("expected one row"))
-		return false
+		return false, nil
 	}
 
-	var count int
-	err = rows.Scan(&count)
+	var userID int
+	err = rows.Scan(&userID)
 	if err != nil {
 		fmt.Println(err)
-		return false
+		return false, nil
 	}
 
-	return count > 0
+	return true, &userID
 }

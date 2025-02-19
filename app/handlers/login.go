@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 var jwtKey = []byte("jkh7hlkjg56'jkl")
 
 type Claims struct {
+	UserID   int    `json:"userid"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
@@ -30,9 +32,9 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var responseDTO dtos.LoginResponseDTO
-	valid := db.VerifyUser(request.Login, request.PasswordSha512)
+	valid, userID := db.VerifyUser(request.Login, request.PasswordSha512)
 	if valid {
-		jwt, err := generateJWT(request.Login)
+		jwt, err := generateJWT(request.Login, *userID)
 		if err != nil {
 			log.Println(err)
 			return
@@ -47,9 +49,10 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(responseDTO)
 }
 
-func generateJWT(login string) (string, error) {
+func generateJWT(login string, userID int) (string, error) {
 	expirationTime := time.Now().Add(common.AUTH_JWT_EXPIRATION_TIME * time.Second)
 	claims := &Claims{
+		UserID:   userID,
 		Username: login,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -61,7 +64,7 @@ func generateJWT(login string) (string, error) {
 	return token.SignedString(jwtKey)
 }
 
-func verifyJWT(token string) (bool, int) {
+func verifyJWT(token string) (bool, *int, int) {
 	claims := &Claims{}
 	parsed, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
@@ -69,17 +72,17 @@ func verifyJWT(token string) (bool, int) {
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return false, http.StatusUnauthorized
+			return false, nil, http.StatusUnauthorized
 		} else {
-			return false, http.StatusBadRequest
+			return false, nil, http.StatusBadRequest
 		}
 	}
 
 	if !parsed.Valid {
-		return false, http.StatusUnauthorized
+		return false, nil, http.StatusUnauthorized
 	}
 
-	return true, http.StatusOK
+	return true, &claims.UserID, http.StatusOK
 }
 
 func AuthCheckMiddleware(next http.Handler) http.Handler {
@@ -89,11 +92,12 @@ func AuthCheckMiddleware(next http.Handler) http.Handler {
 		fullAuthHeader := req.Header.Get("Authorization")
 		var valid bool = false
 		var statusCode int = http.StatusUnauthorized
+		var userID *int = nil
 		if fullAuthHeader != "" {
 			parts := strings.Split(fullAuthHeader, " ")
 			if len(parts) > 1 {
 				token := parts[1]
-				valid, statusCode = verifyJWT(token)
+				valid, userID, statusCode = verifyJWT(token)
 			}
 		}
 
@@ -103,6 +107,10 @@ func AuthCheckMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, req)
+		log.Printf("AuthCheckMiddleware: req: %s: userID: %d", req.URL, *userID)
+		ctx := context.WithValue(req.Context(), "userID", *userID)
+		newReq := req.WithContext(ctx)
+
+		next.ServeHTTP(w, newReq)
 	})
 }
