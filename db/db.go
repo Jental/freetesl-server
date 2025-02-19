@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/db/models"
@@ -165,13 +166,7 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 }
 
 func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
-	db, err := sql.Open("postgres", CONNECTION_STRING)
-	if err != nil {
-		return nil, err
-	}
-	defer db.Close()
-
-	err = db.Ping()
+	db, err := openAndTestConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -210,4 +205,38 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 	}
 
 	return result, nil
+}
+
+func VerifyUser(login string, passowrdSha512 string) bool {
+	db, err := openAndTestConnection()
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	rows, err := db.Query(`
+		SELECT count(*) as count
+		FROM players
+		WHERE login = $1 AND password = $2
+	`, login, passowrdSha512)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	defer rows.Close()
+
+	exists := rows.Next()
+	if !exists {
+		fmt.Println(fmt.Errorf("expected one row"))
+		return false
+	}
+
+	var count int
+	err = rows.Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	return count > 0
 }

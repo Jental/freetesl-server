@@ -7,9 +7,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	appHandlers "github.com/jental/freetesl-server/app/handlers"
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/match/handlers"
+	matchHandlers "github.com/jental/freetesl-server/match/handlers"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -20,14 +21,17 @@ var upgrader = websocket.Upgrader{} // use default options
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
+
+	http.HandleFunc("/login", appHandlers.Login)
 	http.HandleFunc("/ws", connectAndJoinMatch)
+
 	log.Fatal(http.ListenAndServe(*addr, nil))
 }
 
 func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("upgrade error:", err)
+		log.Println("upgrade error:", err)
 		return
 	}
 
@@ -55,11 +59,11 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 		case "join":
 			var dto dtos.JoinRequestDTO
 			mapstructure.Decode(body, &dto)
-			go handlers.JoinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
+			go matchHandlers.JoinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
 		case "endTurn":
 			var dto dtos.EndTurnRequestDTO
 			mapstructure.Decode(body, &dto)
-			go handlers.EndTurn(dto.PlayerID)
+			go matchHandlers.EndTurn(dto.PlayerID)
 		case "moveCardToLane":
 			var dto dtos.MoveCardToLaneRequestDTO
 			mapstructure.Decode(body, &dto)
@@ -68,7 +72,7 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				continue
 			}
-			go handlers.MoveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
+			go matchHandlers.MoveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
 		case "hitFace":
 			var dto dtos.HitFaceDTO
 			mapstructure.Decode(body, &dto)
@@ -77,7 +81,7 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				continue
 			}
-			go handlers.HitFace(dto.PlayerID, cardInstanceID)
+			go matchHandlers.HitFace(dto.PlayerID, cardInstanceID)
 		case "hitCard":
 			var dto dtos.HitCardDTO
 			mapstructure.Decode(body, &dto)
@@ -92,7 +96,7 @@ func connectAndJoinMatch(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			go handlers.HitCard(dto.PlayerID, cardInstanceID, opponentCardInstanceID)
+			go matchHandlers.HitCard(dto.PlayerID, cardInstanceID, opponentCardInstanceID)
 		}
 	}
 }
