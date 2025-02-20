@@ -57,13 +57,9 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 
 		switch method {
 		case "join":
-			var dto dtos.JoinRequestDTO
-			mapstructure.Decode(body, &dto)
-			go JoinMatch(dto.PlayerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
+			go JoinMatch(playerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
 		case "endTurn":
-			var dto dtos.EndTurnRequestDTO
-			mapstructure.Decode(body, &dto)
-			go EndTurn(dto.PlayerID)
+			go EndTurn(playerID)
 		case "moveCardToLane":
 			var dto dtos.MoveCardToLaneRequestDTO
 			mapstructure.Decode(body, &dto)
@@ -72,7 +68,7 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 				log.Println(err)
 				continue
 			}
-			go MoveCardToLane(dto.PlayerID, cardInstanceID, dto.LaneID)
+			go MoveCardToLane(playerID, cardInstanceID, dto.LaneID)
 		case "hitFace":
 			var dto dtos.HitFaceDTO
 			mapstructure.Decode(body, &dto)
@@ -81,7 +77,7 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 				log.Println(err)
 				continue
 			}
-			go HitFace(dto.PlayerID, cardInstanceID)
+			go HitFace(playerID, cardInstanceID)
 		case "hitCard":
 			var dto dtos.HitCardDTO
 			mapstructure.Decode(body, &dto)
@@ -96,7 +92,7 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 				continue
 			}
 
-			go HitCard(dto.PlayerID, cardInstanceID, opponentCardInstanceID)
+			go HitCard(playerID, cardInstanceID, opponentCardInstanceID)
 		}
 	}
 }
