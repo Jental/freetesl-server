@@ -171,16 +171,26 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 		return nil, err
 	}
 
-	// var playerIDsStr = strings.Replace(strings.Trim(fmt.Sprint(playerIDs), "[]"), " ", ", ", -1)
-	query, args, err := sqlx.In(`
-		SELECT p.id, p.display_name, p.avatar_name
-		FROM players as p 
-		WHERE p.id in (?)
-	`, playerIDs)
-	if err != nil {
-		return nil, err
+	var query string
+	var args []interface{}
+	if playerIDs != nil {
+		query, args, err = sqlx.In(`
+			SELECT p.id, p.display_name, p.avatar_name
+			FROM players as p 
+			WHERE p.id in (?)
+		`, playerIDs)
+		if err != nil {
+			return nil, err
+		}
+		query = sqlx.Rebind(sqlx.DOLLAR, query)
+
+	} else {
+		query = `
+			SELECT p.id, p.display_name, p.avatar_name
+			FROM players as p
+		`
+		args = make([]interface{}, 0)
 	}
-	query = sqlx.Rebind(sqlx.DOLLAR, query)
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err

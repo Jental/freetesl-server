@@ -15,7 +15,8 @@ func main() {
 	flag.Parse()
 	log.SetFlags(0)
 
-	http.HandleFunc("/login", appHandlers.Login)
+	http.Handle("POST /login", appHandlers.RequestLoggerMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.Login))))
+	http.Handle("GET /players", appHandlers.RequestLoggerMiddleware(appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.GetPlayers)))))
 	http.Handle("/ws", appHandlers.AuthCheckMiddleware(http.HandlerFunc(matchHandlers.ConnectAndJoinMatch)))
 
 	log.Fatal(http.ListenAndServe(*addr, nil))

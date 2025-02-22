@@ -24,7 +24,7 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 		log.Println("player id from a context has invalid type")
 		return
 	}
-	log.Printf("Player id: %d", playerID)
+	log.Printf("ConnectAndJoinMatch: Player id: %d", playerID)
 
 	c, err := upgrader.Upgrade(w, req, nil)
 	if err != nil {

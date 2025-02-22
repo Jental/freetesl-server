@@ -8,6 +8,7 @@ import (
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 func sendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchState *models.Match) error {
@@ -46,14 +47,18 @@ func sendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 
 	var dto = dtos.MatchInformationDTO{
 		Player: &dtos.PlayerInformationDTO{
+			ID:         playerID,
 			Name:       player.DisplayName,
 			AvatarName: player.AvatarName,
+			State:      byte(enums.PlayerStateInMatch),
 		},
 	}
 	if opponentExists {
 		dto.Opponent = &dtos.PlayerInformationDTO{
+			ID:         opponentID,
 			Name:       opponent.DisplayName,
 			AvatarName: opponent.AvatarName,
+			State:      byte(enums.PlayerStateInMatch),
 		}
 	} else {
 		dto.Opponent = nil
