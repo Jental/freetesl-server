@@ -17,6 +17,8 @@ func main() {
 
 	http.Handle("POST /login", appHandlers.RequestLoggerMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.Login))))
 	http.Handle("GET /players", appHandlers.RequestLoggerMiddleware(appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.GetPlayers)))))
+	http.Handle("POST /startLookingForOpponent", appHandlers.RequestLoggerMiddleware(appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.StartLookingForOpponent)))))
+	http.Handle("POST /stopLookingForOpponent", appHandlers.RequestLoggerMiddleware(appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.StopLookingForOpponent)))))
 	http.Handle("/ws", appHandlers.AuthCheckMiddleware(http.HandlerFunc(matchHandlers.ConnectAndJoinMatch)))
 
 	log.Fatal(http.ListenAndServe(*addr, nil))

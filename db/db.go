@@ -34,6 +34,7 @@ func GetAllCards() ([]*models.Card, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	rows, err := db.Query(`
 		SELECT c.id as id, c.name, c.power, c.health, c.cost, c.type_id, c.class_id, cr.race_id, ck.keyword_id
@@ -115,6 +116,7 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	rows, err := db.Query(`
 		SELECT d.id as id, d.name as name, c.id as card_id, c.name as card_name, c.power as card_power, c.health as card_health, c.cost as card_cost, dc.count as count
@@ -170,6 +172,7 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer db.Close()
 
 	var query string
 	var args []interface{}
@@ -178,6 +181,7 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 			SELECT p.id, p.display_name, p.avatar_name
 			FROM players as p 
 			WHERE p.id in (?)
+			ORDER BY p.id ASC
 		`, playerIDs)
 		if err != nil {
 			return nil, err
@@ -188,6 +192,7 @@ func GetPlayers(playerIDs []int) (map[int]*models.Player, error) {
 		query = `
 			SELECT p.id, p.display_name, p.avatar_name
 			FROM players as p
+			ORDER BY p.id ASC
 		`
 		args = make([]interface{}, 0)
 	}
@@ -223,6 +228,7 @@ func VerifyUser(login string, passowrdSha512 string) (bool, *int) {
 		fmt.Println(err)
 		return false, nil
 	}
+	defer db.Close()
 
 	rows, err := db.Query(`
 		SELECT id
