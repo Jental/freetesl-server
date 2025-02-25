@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/mitchellh/mapstructure"
 )
@@ -31,8 +30,9 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 		log.Println("upgrade error:", err)
 		return
 	}
-
 	defer c.Close()
+
+	go JoinMatch(playerID, c)
 
 	for {
 		var request map[string]interface{}
@@ -56,8 +56,6 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 		log.Printf("recv: %s\n", method)
 
 		switch method {
-		case "join":
-			go JoinMatch(playerID, common.Maybe[uuid.UUID]{HasValue: false}, c) // for now always joing to a new match. TODO: fix
 		case "endTurn":
 			go EndTurn(playerID)
 		case "moveCardToLane":

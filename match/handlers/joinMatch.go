@@ -130,7 +130,30 @@ func createNewMatchForPlayer(playerID int, conn *websocket.Conn) (*models.Match,
 	return &matchState, nil
 }
 
-func JoinMatch(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Conn) {
+func JoinMatch(playerID int, connection *websocket.Conn) {
+	matchState, playerState, _, err := match.GetCurrentMatchState(playerID)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	playerState.Connection = connection
+
+	go senders.StartListeningBackendEvents(playerState, matchState)
+
+	senders.SendAllCardsToPlayer(playerState)
+
+	playerState.Events <- enums.BackendEventCardInstancesChanged
+	playerState.Events <- enums.BackendEventOpponentCardInstancesChanged
+	playerState.Events <- enums.BackendEventHandChanged
+	playerState.Events <- enums.BackendEventOpponentHandChanged
+	playerState.Events <- enums.BackendEventDeckChanged
+	playerState.Events <- enums.BackendEventOpponentDeckChanged
+	playerState.Events <- enums.BackendEventDiscardPileChanged
+	playerState.Events <- enums.BackendEventOpponentDiscardPileChanged
+}
+
+func JoinMatchOld(playerID int, matchID common.Maybe[uuid.UUID], conn *websocket.Conn) {
 	var matchState *models.Match
 	var playerState *models.PlayerMatchState
 	var opponentState *models.PlayerMatchState

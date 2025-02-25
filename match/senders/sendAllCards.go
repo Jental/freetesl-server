@@ -43,6 +43,19 @@ func SendAllCardsToEveryone(match *models.Match) {
 	}
 }
 
+func SendAllCardsToPlayer(playerState *models.PlayerMatchState) {
+	cards, err := db.GetAllCards()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = sendAllCardsToPlayer(playerState, cards)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModels.Card) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
