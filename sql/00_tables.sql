@@ -25,12 +25,12 @@ CREATE TABLE races (
 CREATE TABLE card_types (
     id int NOT NULL PRIMARY KEY,
     name varchar(255) NOT NULL
-)
+);
 
 CREATE TABLE keywords (
     id int NOT NULL PRIMARY KEY,
     name varchar(255) NOT NULL
-)
+);
 
 CREATE TABLE cards (
     id serial PRIMARY KEY,

@@ -6,7 +6,7 @@ VALUES (1, 'yellow', 'willpower'),
        (5, 'purple', 'endurance'),
        (6, 'gray', 'neutral');
 
-INSERT INTO classes (name)
+INSERT INTO classes (id, name)
 VALUES (1, 'willpower'),
        (2, 'strength'),
        (3, 'intelligence'),
