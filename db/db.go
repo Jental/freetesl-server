@@ -12,7 +12,7 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-const CONNECTION_STRING = "host=localhost port=5432 user=postgres password=]Hy)*58)Np-2LrC9hD-( dbname=tesl sslmode=disable"
+const CONNECTION_STRING = "host=localhost port=5432 user=postgres password=1qaz@@wsx dbname=tesl sslmode=disable"
 
 func openAndTestConnection() (*sql.DB, error) {
 	db, err := sql.Open("postgres", CONNECTION_STRING)
