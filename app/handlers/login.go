@@ -31,6 +31,8 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	log.Printf("Login: [%s]: password: '%s'\n", request.Login, request.PasswordSha512)
+
 	var responseDTO dtos.LoginResponseDTO
 	valid, userID := db.VerifyUser(request.Login, request.PasswordSha512)
 	if valid {
@@ -41,6 +43,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		}
 		responseDTO = dtos.LoginResponseDTO{Valid: true, Token: &jwt}
 	} else {
+		log.Printf("Login: [%s]: failed", request.Login)
 		responseDTO = dtos.LoginResponseDTO{Valid: false, Token: nil}
 	}
 
