@@ -26,7 +26,7 @@ var rnd rand.Rand = *rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func MatchCreate(w http.ResponseWriter, req *http.Request) {
 	var playerID int = -1
-	contextVal := req.Context().Value("userID")
+	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	if contextVal == nil {
 		log.Println("player id is not found in a context")
 	} else {

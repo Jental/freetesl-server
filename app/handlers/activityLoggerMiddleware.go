@@ -4,13 +4,14 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 )
 
 func ActivityLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var playerID int = -1
-		contextVal := req.Context().Value("userID")
+		contextVal := req.Context().Value(enums.ContextKeyUserID)
 		if contextVal == nil {
 			log.Println("player id is not found in a context")
 		} else {

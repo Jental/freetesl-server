@@ -10,7 +10,7 @@ import (
 
 func setPlayerState(w http.ResponseWriter, req *http.Request, state enums.PlayerState) {
 	var playerID int = -1
-	contextVal := req.Context().Value("userID")
+	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	if contextVal == nil {
 		log.Println("player id is not found in a context")
 	} else {

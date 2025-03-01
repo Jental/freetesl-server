@@ -7,13 +7,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/models/enums"
 	"github.com/mitchellh/mapstructure"
 )
 
 var upgrader = websocket.Upgrader{} // use default options
 
 func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
-	contextVal := req.Context().Value("userID")
+	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	if contextVal == nil {
 		log.Println("player id is not found in a context")
 		return

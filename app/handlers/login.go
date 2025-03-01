@@ -12,6 +12,7 @@ import (
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/db"
 	"github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 var jwtKey = []byte("jkh7hlkjg56'jkl")
@@ -111,7 +112,7 @@ func AuthCheckMiddleware(next http.Handler) http.Handler {
 		}
 
 		log.Printf("AuthCheckMiddleware: req: %s: userID: %d", req.URL, *userID)
-		ctx := context.WithValue(req.Context(), "userID", *userID)
+		ctx := context.WithValue(req.Context(), enums.ContextKeyUserID, *userID)
 		newReq := req.WithContext(ctx)
 
 		next.ServeHTTP(w, newReq)

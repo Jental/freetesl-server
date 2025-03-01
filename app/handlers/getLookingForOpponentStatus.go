@@ -8,11 +8,12 @@ import (
 
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 func GetLookingForOpponentStatus(w http.ResponseWriter, req *http.Request) {
 	var playerID int = -1
-	contextVal := req.Context().Value("userID")
+	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	var err error
 	if contextVal == nil {
 		err = errors.New("player id is not found in a context")
