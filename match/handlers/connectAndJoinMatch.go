@@ -7,7 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models/enums"
+	"github.com/jental/freetesl-server/services"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -36,9 +38,21 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 	go JoinMatch(playerID, c)
 
 	for {
+		_, playerState, _, err := match.GetCurrentMatchState(playerID)
+		if err != nil {
+			log.Printf("no active match for player: %d\n", playerID)
+			continue
+		}
+
+		select {
+		case <-playerState.ConnectionCancellationChan:
+			return
+		default:
+		}
+
 		var request map[string]interface{}
 
-		err := c.ReadJSON(&request)
+		err = c.ReadJSON(&request)
 		if err != nil {
 			log.Println("websocket read error:", err)
 			continue
@@ -55,6 +69,8 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 			log.Printf("websocket read error:  body is expected. method: %s\n", method)
 		}
 		log.Printf("recv: %s\n", method)
+
+		services.UpdatePlayerLastActivityTime(playerID)
 
 		switch method {
 		case "endTurn":

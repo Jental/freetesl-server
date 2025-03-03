@@ -8,8 +8,8 @@ import (
 
 type Match struct {
 	Id               uuid.UUID
-	Player0State     common.Maybe[PlayerMatchState]
-	Player1State     common.Maybe[PlayerMatchState]
+	Player0State     common.Maybe[PlayerMatchState] // remove maybe
+	Player1State     common.Maybe[PlayerMatchState] // remove maybe
 	PlayerWithTurnID int
-	WinnerID         int
+	WinnerID         int // -1 means 'no winner yet' or 'draw'
 }

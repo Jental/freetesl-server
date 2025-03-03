@@ -30,6 +30,7 @@ func StartListeningBackendEvents(playerState *models.PlayerMatchState, matchStat
 			SendAllCardInstancesToPlayer(playerState, matchState)
 		case enums.BackendEventMatchEnd:
 			SendMatchEndToPlayer(playerState, matchState)
+			break // we stop listening on match end
 		}
 	}
 }

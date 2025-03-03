@@ -7,6 +7,7 @@ import (
 
 	appHandlers "github.com/jental/freetesl-server/app/handlers"
 	matchHandlers "github.com/jental/freetesl-server/match/handlers"
+	"github.com/jental/freetesl-server/services"
 )
 
 var addr = flag.String("addr", "localhost:8081", "http service address")
@@ -14,6 +15,8 @@ var addr = flag.String("addr", "localhost:8081", "http service address")
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
+
+	go services.StartPlayersActivityMonitoring()
 
 	http.Handle("POST /login", http.HandlerFunc(appHandlers.Login))
 	http.Handle("POST /logout", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.Logout))))

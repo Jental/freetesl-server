@@ -74,3 +74,4 @@ CREATE TABLE deck_cards (
     card_id int NOT NULL REFERENCES cards(id),
     count int NOT NULL
 );
+

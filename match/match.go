@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 var matches map[uuid.UUID]*models.Match = nil
@@ -49,6 +50,30 @@ func AddOrRefreshMatch(match *models.Match) {
 
 	if match.Player1State.HasValue {
 		playersToMatches[match.Player1State.Value.PlayerID] = match
+	}
+}
+
+func EndMatch(match *models.Match, winnerID int) {
+	match.WinnerID = winnerID
+
+	match.Player0State.Value.Events <- enums.BackendEventMatchEnd
+	match.Player1State.Value.Events <- enums.BackendEventMatchEnd
+
+	match.Player0State.Value.ConnectionCancellationChan <- struct{}{} // TODO: check: it may happen, that in time we are trying to close a connection it's used (or maybe even recreated after relogin)
+	match.Player1State.Value.ConnectionCancellationChan <- struct{}{}
+
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	delete(playersToMatches, match.Player0State.Value.PlayerID)
+	delete(playersToMatches, match.Player1State.Value.PlayerID)
+	delete(matches, match.Id)
+}
+
+func EndMatchByID(matchID uuid.UUID, winnerID int) {
+	match, exists := matches[matchID]
+	if exists {
+		EndMatch(match, winnerID)
 	}
 }
 

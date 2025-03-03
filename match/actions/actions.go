@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/jental/freetesl-server/common"
+	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -74,8 +75,7 @@ func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 
 	if updatedHealth <= 0 {
 		// TODO: there'll be an exception with a Vivec card in play later
-		playerState.Events <- enums.BackendEventMatchEnd
-		playerState.OpponentState.Events <- enums.BackendEventMatchEnd
+		match.EndMatch(playerState.MatchState, playerState.OpponentState.PlayerID)
 	}
 }
 

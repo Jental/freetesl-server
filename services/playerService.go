@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -28,18 +27,7 @@ func GetPlayers() ([]*models.Player, error) {
 		if !exists {
 			state = enums.PlayerStateOffline
 		} else {
-			if playerInfo.LastActivityTime == nil {
-				fmt.Println(fmt.Errorf("unexpected null LastActivityTime"))
-				state = enums.PlayerStateOffline
-
-			} else {
-				var diff = time.Since(*playerInfo.LastActivityTime)
-				if diff.Seconds() > 30 {
-					state = enums.PlayerStateOffline
-				} else {
-					state = playerInfo.State
-				}
-			}
+			state = playerInfo.State
 		}
 
 		player := models.Player{
