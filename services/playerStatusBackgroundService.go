@@ -43,6 +43,11 @@ func StartPlayersActivityMonitoring() {
 				}
 
 				playerInfo.State = enums.PlayerStateOffline
+			} else if playerInfo.State == enums.PlayerStateInMatch {
+				var _, _, _, err = match.GetCurrentMatchState(playerID)
+				if err != nil {
+					playerInfo.State = enums.PlayerStateOnline
+				}
 			}
 		}
 

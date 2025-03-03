@@ -1,7 +1,7 @@
 package senders
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/jental/freetesl-server/mappers"
 	"github.com/jental/freetesl-server/models"
@@ -30,7 +30,7 @@ func SendMatchStateToPlayer(playerState *models.PlayerMatchState, match *models.
 		return err
 	}
 
-	fmt.Printf("sent: [%d]: matchStateUpdate\n", playerState.PlayerID)
+	log.Printf("[%d]: sent: matchStateUpdate", playerState.PlayerID)
 
 	return nil
 }

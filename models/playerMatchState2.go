@@ -21,6 +21,7 @@ type PlayerMatchState struct {
 	MatchState                 *Match
 	Connection                 *websocket.Conn
 	ConnectionCancellationChan chan struct{}
+	PartiallyParsedMessages    chan PartiallyParsedMessage
 	Events                     chan enums.BackendEventType
 }
 
@@ -52,7 +53,8 @@ func NewPlayerMatchState(
 		OpponentState:              nil,
 		MatchState:                 nil,
 		Connection:                 connection,
-		ConnectionCancellationChan: make(chan struct{}),
+		ConnectionCancellationChan: make(chan struct{}, 1),
+		PartiallyParsedMessages:    make(chan PartiallyParsedMessage, 1),
 		Events:                     make(chan enums.BackendEventType, 10),
 	}
 }

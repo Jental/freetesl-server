@@ -1,25 +1,12 @@
 package handlers
 
 import (
-	"fmt"
-
-	"github.com/gorilla/websocket"
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/senders"
+	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func JoinMatch(playerID int, connection *websocket.Conn) {
-	matchState, playerState, _, err := match.GetCurrentMatchState(playerID)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	playerState.Connection = connection
-
-	go senders.StartListeningBackendEvents(playerState, matchState)
-
+func JoinMatch(playerState *models.PlayerMatchState) {
 	senders.SendAllCardsToPlayer(playerState)
 
 	playerState.Events <- enums.BackendEventCardInstancesChanged

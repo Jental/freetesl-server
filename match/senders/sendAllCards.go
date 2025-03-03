@@ -3,6 +3,7 @@ package senders
 import (
 	"errors"
 	"fmt"
+	"log"
 	"slices"
 
 	"github.com/jental/freetesl-server/db"
@@ -76,7 +77,7 @@ func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModel
 		return err
 	}
 
-	fmt.Printf("sent: [%d]: allCards\n", playerState.PlayerID)
+	log.Printf("[%d]: sent: allCards", playerState.PlayerID)
 
 	return nil
 }

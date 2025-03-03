@@ -1,7 +1,7 @@
 package senders
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/jental/freetesl-server/mappers"
 	"github.com/jental/freetesl-server/models"
@@ -27,7 +27,7 @@ func SendMatchEndToPlayer(playerState *models.PlayerMatchState, match *models.Ma
 		return err
 	}
 
-	fmt.Printf("sent: [%d]: matchEnd\n", playerState.PlayerID)
+	log.Printf("[%d]: sent: matchEnd", playerState.PlayerID)
 
 	return nil
 }

@@ -2,6 +2,7 @@ package match
 
 import (
 	"fmt"
+	"log"
 	"slices"
 	"sync"
 
@@ -59,8 +60,10 @@ func EndMatch(match *models.Match, winnerID int) {
 	match.Player0State.Value.Events <- enums.BackendEventMatchEnd
 	match.Player1State.Value.Events <- enums.BackendEventMatchEnd
 
+	log.Printf("sending cancellations for %d and %d", match.Player0State.Value.PlayerID, match.Player1State.Value.PlayerID)
 	match.Player0State.Value.ConnectionCancellationChan <- struct{}{} // TODO: check: it may happen, that in time we are trying to close a connection it's used (or maybe even recreated after relogin)
 	match.Player1State.Value.ConnectionCancellationChan <- struct{}{}
+	log.Printf("sent cancellations for %d and %d", match.Player0State.Value.PlayerID, match.Player1State.Value.PlayerID)
 
 	mutex.Lock()
 	defer mutex.Unlock()

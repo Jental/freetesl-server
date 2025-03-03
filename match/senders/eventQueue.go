@@ -1,7 +1,7 @@
 package senders
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
@@ -10,27 +10,38 @@ import (
 func StartListeningBackendEvents(playerState *models.PlayerMatchState, matchState *models.Match) {
 	for {
 		var event = <-playerState.Events
+		var err error = nil
 
-		fmt.Printf("event: [%d]: %s\n", playerState.PlayerID, enums.BackendEventTypeName[event])
+		log.Printf("[%d]: event: %s\n", playerState.PlayerID, enums.BackendEventTypeName[event])
 
 		// TODO: calculate dto hashes and don't do resent if dto has not changed
 		//       + maybe some throttling will be a good ided
 		//         collect events during some small interval, and send onlu unique messages after
 
+		var stopListening = false
+
 		switch event {
 		case enums.BackendEventDeckChanged, enums.BackendEventOpponentDeckChanged:
-			SendDeckStateToPlayer(playerState, matchState)
+			err = SendDeckStateToPlayer(playerState, matchState)
 		case enums.BackendEventHealthChanged, enums.BackendEventManaChanged, enums.BackendEventHandChanged, enums.BackendEventLanesChanged, enums.BackendEventMatchStateRefresh,
 			enums.BackendEventOpponentHealthChanged, enums.BackendEventOpponentManaChanged, enums.BackendEventOpponentHandChanged, enums.BackendEventOpponentLanesChanged, enums.BackendEventOpponentMatchStateRefresh,
 			enums.BackendEventSwitchTurn:
-			SendMatchStateToPlayer(playerState, matchState)
+			err = SendMatchStateToPlayer(playerState, matchState)
 		case enums.BackendEventDiscardPileChanged, enums.BackendEventOpponentDiscardPileChanged:
-			SendDiscardPileStateToPlayer(playerState, matchState)
+			err = SendDiscardPileStateToPlayer(playerState, matchState)
 		case enums.BackendEventCardInstancesChanged, enums.BackendEventOpponentCardInstancesChanged:
-			SendAllCardInstancesToPlayer(playerState, matchState)
+			err = SendAllCardInstancesToPlayer(playerState, matchState)
 		case enums.BackendEventMatchEnd:
-			SendMatchEndToPlayer(playerState, matchState)
-			break // we stop listening on match end
+			err = SendMatchEndToPlayer(playerState, matchState)
+			stopListening = true // we stop listening on match end
+		}
+
+		if err != nil {
+			log.Printf("[%d]: sending error: '%s'", playerState.PlayerID, err)
+		}
+
+		if stopListening {
+			break
 		}
 	}
 }
