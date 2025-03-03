@@ -9,6 +9,7 @@ import (
 func JoinMatch(playerState *models.PlayerMatchState) {
 	senders.SendAllCardsToPlayer(playerState)
 
+	playerState.Events <- enums.BackendEventMatchStart
 	playerState.Events <- enums.BackendEventCardInstancesChanged
 	playerState.Events <- enums.BackendEventOpponentCardInstancesChanged
 	playerState.Events <- enums.BackendEventHandChanged

@@ -19,8 +19,9 @@ const (
 	BackendEventOpponentHealthChanged        BackendEventType = 105
 	BackendEventOpponentMatchStateRefresh    BackendEventType = 106
 	BackendEventOpponentCardInstancesChanged BackendEventType = 107
-	BackendEventMatchEnd                     BackendEventType = 200
-	BackendEventSwitchTurn                   BackendEventType = 201
+	BackendEventMatchStart                   BackendEventType = 200
+	BackendEventMatchEnd                     BackendEventType = 201
+	BackendEventSwitchTurn                   BackendEventType = 202
 )
 
 var BackendEventTypeName = map[BackendEventType]string{

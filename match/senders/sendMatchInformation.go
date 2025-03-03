@@ -12,7 +12,7 @@ import (
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func sendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchState *models.Match) error {
+func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchState *models.Match) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}

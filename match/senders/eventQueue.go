@@ -31,6 +31,8 @@ func StartListeningBackendEvents(playerState *models.PlayerMatchState, matchStat
 			err = SendDiscardPileStateToPlayer(playerState, matchState)
 		case enums.BackendEventCardInstancesChanged, enums.BackendEventOpponentCardInstancesChanged:
 			err = SendAllCardInstancesToPlayer(playerState, matchState)
+		case enums.BackendEventMatchStart:
+			err = SendMatchInformationToPlayer(playerState, matchState)
 		case enums.BackendEventMatchEnd:
 			err = SendMatchEndToPlayer(playerState, matchState)
 			stopListening = true // we stop listening on match end
