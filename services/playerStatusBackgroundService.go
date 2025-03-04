@@ -18,10 +18,13 @@ func StartPlayersActivityMonitoring() {
 			winnerID  int
 		})
 
+		var playersToDeleteRuntimeInfo = make([]int, 0)
+
 		for playerID, playerInfo := range playersRunimeInfo {
 			var diff = time.Since(*playerInfo.LastActivityTime)
 			if diff.Seconds() > 30 {
 				if playerInfo.State == enums.PlayerStateInMatch {
+					// TODO: better match timeouts handling (based on turn timeouts)
 					var match, _, opponentState, err = match.GetCurrentMatchState(playerID)
 					if err != nil {
 						continue // no match
@@ -43,6 +46,7 @@ func StartPlayersActivityMonitoring() {
 				}
 
 				playerInfo.State = enums.PlayerStateOffline
+				playersToDeleteRuntimeInfo = append(playersToDeleteRuntimeInfo, playerID)
 			} else if playerInfo.State == enums.PlayerStateInMatch {
 				var _, _, _, err = match.GetCurrentMatchState(playerID)
 				if err != nil {
@@ -53,6 +57,10 @@ func StartPlayersActivityMonitoring() {
 
 		for matchID, endInfo := range matchesToFinish {
 			match.EndMatchByID(matchID, endInfo.winnerID)
+		}
+
+		for _, playerID := range playersToDeleteRuntimeInfo {
+			delete(playersRunimeInfo, playerID)
 		}
 
 		time.Sleep(1 * time.Second)
