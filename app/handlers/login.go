@@ -13,6 +13,7 @@ import (
 	"github.com/jental/freetesl-server/db"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models/enums"
+	"github.com/jental/freetesl-server/services"
 )
 
 var jwtKey = []byte("jkh7hlkjg56'jkl")
@@ -47,6 +48,8 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		log.Printf("Login: [%s]: failed", request.Login)
 		responseDTO = dtos.LoginResponseDTO{Valid: false, Token: nil}
 	}
+
+	services.UpdatePlayerLastActivityTime(*userID)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

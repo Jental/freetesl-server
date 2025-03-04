@@ -29,7 +29,7 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 	} else {
 		playerIDs = []int{playerID}
 	}
-	players, err := db.GetPlayers(playerIDs)
+	players, err := db.GetPlayersByIDs(playerIDs)
 	if err != nil {
 		return err
 	}

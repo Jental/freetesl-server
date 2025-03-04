@@ -1,8 +1,6 @@
 package services
 
 import (
-	"maps"
-	"slices"
 	"time"
 
 	"github.com/jental/freetesl-server/db"
@@ -15,12 +13,12 @@ import (
 var playersRunimeInfo map[int]*models.PlayerRuntimeInformation = make(map[int]*models.PlayerRuntimeInformation)
 
 func GetPlayers() ([]*models.Player, error) {
-	playersFromDB, err := db.GetPlayers(nil)
+	playersFromDB, err := db.GetPlayers()
 	if err != nil {
 		return nil, err
 	}
 
-	var players = lo.Map[*dbModels.Player, *models.Player](slices.Collect(maps.Values(playersFromDB)), func(p *dbModels.Player, _ int) *models.Player {
+	var players = lo.Map(playersFromDB, func(p *dbModels.Player, _ int) *models.Player {
 		playerInfo, exists := playersRunimeInfo[p.ID]
 
 		var state enums.PlayerState
