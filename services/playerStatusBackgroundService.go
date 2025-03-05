@@ -22,7 +22,7 @@ func StartPlayersActivityMonitoring() {
 
 		for playerID, playerInfo := range playersRunimeInfo {
 			var diff = time.Since(*playerInfo.LastActivityTime)
-			if diff.Seconds() > 30 {
+			if diff.Seconds() > 120 {
 				if playerInfo.State == enums.PlayerStateInMatch {
 					// TODO: better match timeouts handling (based on turn timeouts)
 					var match, _, opponentState, err = match.GetCurrentMatchState(playerID)

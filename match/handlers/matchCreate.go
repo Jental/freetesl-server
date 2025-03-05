@@ -132,7 +132,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 
 	var playerState = models.NewPlayerMatchState(
 		playerID,
-		2, // 30
+		30,
 		5,
 		1,
 		1,
