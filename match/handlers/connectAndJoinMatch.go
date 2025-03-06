@@ -139,6 +139,8 @@ func processMessage(playerID int, message models.PartiallyParsedMessage) error {
 			return err
 		}
 		go HitCard(playerID, cardInstanceID, opponentCardInstanceID)
+	case "concede":
+		go Concede(playerID)
 	}
 
 	return nil
