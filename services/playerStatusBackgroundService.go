@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,12 +24,15 @@ func StartPlayersActivityMonitoring() {
 		for playerID, playerInfo := range playersRunimeInfo {
 			var diff = time.Since(*playerInfo.LastActivityTime)
 			if diff.Seconds() > 120 {
+				log.Printf("[%d]: got inactive", playerID)
 				if playerInfo.State == enums.PlayerStateInMatch {
 					// TODO: better match timeouts handling (based on turn timeouts)
 					var match, _, opponentState, err = match.GetCurrentMatchState(playerID)
 					if err != nil {
 						continue // no match
 					}
+
+					log.Printf("[%d]: got inactive: match: %s", playerID, match.Id.String())
 
 					foundMatchToFinish, exists := matchesToFinish[match.Id]
 					if exists {
@@ -50,6 +54,7 @@ func StartPlayersActivityMonitoring() {
 			} else if playerInfo.State == enums.PlayerStateInMatch {
 				var _, _, _, err = match.GetCurrentMatchState(playerID)
 				if err != nil {
+					log.Printf("[%d]: match seems to be finished - changing state to 'online'", playerID)
 					playerInfo.State = enums.PlayerStateOnline
 				}
 			}
@@ -60,6 +65,7 @@ func StartPlayersActivityMonitoring() {
 		}
 
 		for _, playerID := range playersToDeleteRuntimeInfo {
+			log.Printf("[%d]: removing player runtime info", playerID)
 			delete(playersRunimeInfo, playerID)
 		}
 

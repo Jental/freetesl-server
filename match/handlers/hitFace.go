@@ -11,18 +11,18 @@ import (
 func HitFace(playerID int, cardInstanceID uuid.UUID) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("[%d]: %s", playerID, err)
 		return
 	}
 
 	cardInstance, _, _, err := match.GetCardInstanceFromLanes(playerState, cardInstanceID)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("[%d]: %s", playerID, err)
 		return
 	}
 
 	if !cardInstance.IsActive {
-		fmt.Println(fmt.Errorf("card with id '%d' is not active", cardInstanceID))
+		fmt.Println(fmt.Errorf("[%d]: card with id '%s' is not active", playerID, cardInstanceID.String()))
 		return
 	}
 

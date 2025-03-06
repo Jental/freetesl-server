@@ -55,6 +55,8 @@ func AddOrRefreshMatch(match *models.Match) {
 }
 
 func EndMatch(match *models.Match, winnerID int) {
+	log.Printf("EndMatch: %s", match.Id)
+
 	match.WinnerID = winnerID
 
 	match.Player0State.Value.Events <- enums.BackendEventMatchEnd
@@ -161,4 +163,10 @@ func GetCardInstanceFromLanes(playerState *models.PlayerMatchState, cardInstance
 	}
 
 	return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)
+}
+
+func SendPlayerEvent(playerState *models.PlayerMatchState, event enums.BackendEventType) {
+	if playerState != nil {
+		playerState.Events <- event
+	}
 }

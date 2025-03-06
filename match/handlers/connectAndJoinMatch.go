@@ -23,32 +23,33 @@ func startListeningWebsocketMessages(playerState *models.PlayerMatchState) {
 	playerID := playerState.PlayerID
 
 	for {
-		log.Printf("[%d]: reading next json\n", playerID)
+		log.Printf("[%d]: ws: reading next json", playerID)
 
 		_, r, err := playerState.Connection.NextReader() // using NextReader instead NextJson for better error handling
 		if err != nil {
-			log.Printf("[%d]: websocket read error (or connection was closed on match end): '%s'", playerID, err)
+			log.Printf("[%d]: ws read error (or connection was closed on match end): '%s'", playerID, err)
 			close(playerState.PartiallyParsedMessages)
 			if playerState.Connection != nil {
 				_ = playerState.Connection.Close() // just in case
 			}
+			log.Printf("[%d]: cleaned up", playerID)
 			return
 		}
 
 		var request map[string]interface{}
 		err = json.NewDecoder(r).Decode(&request)
 		if err == io.EOF {
-			log.Printf("[%d]: websocket read error: one value is expected in the message", playerID)
+			log.Printf("[%d]: ws read error: one value is expected in the message", playerID)
 			continue
 		} else if err != nil {
-			log.Printf("[%d]: websocket read error: Failed to parse json:'%s'", playerID, r)
+			log.Printf("[%d]: ws read error: Failed to parse json:'%s'", playerID, r)
 			continue
 		}
 		log.Printf("[%d]: read json", playerID)
 
 		method, exists := request["method"]
 		if !exists {
-			log.Printf("[%d]: websocket read error: unknown method", playerID)
+			log.Printf("[%d]: ws read error: unknown method", playerID)
 			continue
 		}
 
@@ -56,7 +57,7 @@ func startListeningWebsocketMessages(playerState *models.PlayerMatchState) {
 		if !exists {
 			log.Printf("[%d]: websocket read error:  body is expected. method: %s", playerID, method)
 		}
-		log.Printf("[%d]: ws recv: %s\n", playerID, method)
+		log.Printf("[%d]: ws recv: '%s'", playerID, method)
 
 		playerState.PartiallyParsedMessages <- models.PartiallyParsedMessage{
 			Method: method.(string),
@@ -71,8 +72,11 @@ func startListeningPartiallyParsedMessages(playerState *models.PlayerMatchState)
 	for {
 		_, playerState, _, err := match.GetCurrentMatchState(playerID)
 		if err != nil {
-			log.Printf("[%d]: no active match for player", playerID)
-			continue
+			log.Printf("[%d]: no active match for player. closing ws connection", playerID)
+			if playerState != nil && playerState.Connection != nil {
+				_ = playerState.Connection.Close()
+			}
+			return
 		}
 
 		log.Printf("[%d]: checking cancellation", playerID)
@@ -87,7 +91,11 @@ func startListeningPartiallyParsedMessages(playerState *models.PlayerMatchState)
 				}
 			}()
 			return
-		case message := <-playerState.PartiallyParsedMessages:
+		case message, notClosed := <-playerState.PartiallyParsedMessages:
+			if !notClosed {
+				log.Printf("[%d]: messages channel is closed; method (should be empty): '%s'", playerID, message.Method)
+				return
+			}
 			err = processMessage(playerID, message)
 			if err != nil {
 				log.Println(err)
@@ -98,7 +106,7 @@ func startListeningPartiallyParsedMessages(playerState *models.PlayerMatchState)
 }
 
 func processMessage(playerID int, message models.PartiallyParsedMessage) error {
-	log.Printf("[%d]: processing message: '%s'\n", playerID, message.Method)
+	log.Printf("[%d]: processing message: '%s'(%t)", playerID, message.Method, message.Method == "")
 
 	switch message.Method {
 	case "endTurn":
