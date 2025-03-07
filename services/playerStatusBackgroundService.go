@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -23,7 +24,7 @@ func StartPlayersActivityMonitoring() {
 
 		for playerID, playerInfo := range playersRunimeInfo {
 			var diff = time.Since(*playerInfo.LastActivityTime)
-			if diff.Seconds() > 120 {
+			if diff.Seconds() > common.PLAYER_INACTIVITY_TIMEOUT {
 				log.Printf("[%d]: got inactive", playerID)
 				if playerInfo.State == enums.PlayerStateInMatch {
 					// TODO: better match timeouts handling (based on turn timeouts)

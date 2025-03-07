@@ -42,9 +42,22 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	_, _, _, err := match.GetCurrentMatchState(playerID)
+	if err == nil {
+		// player already have a match
+		w.WriteHeader(http.StatusBadRequest)
+		errorResponseDTO := dtos.ErrorDTO{
+			ErrorCode: int(enums.ErrorCodePlayerHasMatch),
+			Message:   enums.ErrorCodeMessages[enums.ErrorCodePlayerHasMatch],
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(errorResponseDTO)
+		return
+	}
+
 	var decoder = json.NewDecoder(req.Body)
 	var dto dtos.MatchCreateDTO
-	err := decoder.Decode(&dto)
+	err = decoder.Decode(&dto)
 	if err != nil {
 		log.Panic(err)
 		w.WriteHeader(http.StatusBadRequest)
