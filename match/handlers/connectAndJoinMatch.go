@@ -150,24 +150,28 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	if contextVal == nil {
 		log.Println("player id is not found in a context")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	playerID, ok := contextVal.(int)
 	if !ok {
 		log.Printf("[%d]: player id from a context has invalid type\n", playerID)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	log.Printf("[%d]: connectAndJoinMatch", playerID)
 
-	connection, err := upgrader.Upgrade(w, req, nil)
-	if err != nil {
-		log.Printf("[%d]: upgrade error: '%s'", playerID, err)
-		return
-	}
-
 	matchState, playerState, _, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		log.Printf("[%d] get match error: '%s'", playerID, err)
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	connection, err := upgrader.Upgrade(w, req, nil)
+	if err != nil {
+		log.Printf("[%d]: upgrade error: '%s'", playerID, err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -177,4 +181,7 @@ func ConnectAndJoinMatch(w http.ResponseWriter, req *http.Request) {
 	go startListeningPartiallyParsedMessages(playerState)
 	go senders.StartListeningBackendEvents(playerState, matchState)
 	go JoinMatch(playerState)
+
+	w.WriteHeader(http.StatusOK)
+
 }
