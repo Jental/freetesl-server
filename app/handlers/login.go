@@ -49,7 +49,9 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		responseDTO = dtos.LoginResponseDTO{Valid: false, Token: nil}
 	}
 
-	services.UpdatePlayerLastActivityTime(*userID)
+	if valid {
+		services.UpdatePlayerLastActivityTime(*userID)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
