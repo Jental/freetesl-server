@@ -5,6 +5,7 @@ import (
 	"log"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/common"
@@ -15,7 +16,7 @@ import (
 var matches map[uuid.UUID]*models.Match = nil
 var playersToMatches map[int]*models.Match = nil
 var once sync.Once
-var mutex sync.Mutex
+var mutex sync.Mutex // TODO: store mutex in match object
 
 func createMatchesIfNeeded() {
 	once.Do(func() {
@@ -62,12 +63,13 @@ func EndMatch(match *models.Match, winnerID int) {
 	match.Player0State.Value.Events <- enums.BackendEventMatchEnd
 	match.Player1State.Value.Events <- enums.BackendEventMatchEnd
 
-	log.Printf("sending cancellations for %d and %d", match.Player0State.Value.PlayerID, match.Player1State.Value.PlayerID)
-	match.Player0State.Value.ConnectionCancellationChan <- struct{}{} // TODO: check: it may happen, that in time we are trying to close a connection it's used (or maybe even recreated after relogin)
-	match.Player1State.Value.ConnectionCancellationChan <- struct{}{}
-	log.Printf("sent cancellations for %d and %d", match.Player0State.Value.PlayerID, match.Player1State.Value.PlayerID)
+	go func() {
+		time.Sleep(2 * time.Second) // to let some (at least matchEnd) events to be sent to FE
+		DisconnectFromMatch(match.Player0State.Value)
+		DisconnectFromMatch(match.Player1State.Value)
+	}()
 
-	mutex.Lock()
+	mutex.Lock() // TODO: store mutex in match object
 	defer mutex.Unlock()
 
 	delete(playersToMatches, match.Player0State.Value.PlayerID)

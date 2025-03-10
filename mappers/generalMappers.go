@@ -27,7 +27,7 @@ func MapToAllCardsDTO(model []*dbModels.Card) []*dtos.CardDTO {
 		func(item *dbModels.Card, _ int) *dtos.CardDTO { var dto = mapToCardDTO(item); return &dto })
 }
 
-func mapToPlayerInformationDTO(model *models.Player) dtos.PlayerInformationDTO {
+func MapToPlayerInformationDTO(model *models.Player) dtos.PlayerInformationDTO {
 	return dtos.PlayerInformationDTO{
 		ID:         model.ID,
 		Name:       model.DisplayName,
@@ -38,7 +38,7 @@ func mapToPlayerInformationDTO(model *models.Player) dtos.PlayerInformationDTO {
 
 func MapToPlayerInformationDTOs(model []*models.Player) []*dtos.PlayerInformationDTO {
 	return lo.Map(model, func(item *models.Player, _ int) *dtos.PlayerInformationDTO {
-		var dto = mapToPlayerInformationDTO(item)
+		var dto = MapToPlayerInformationDTO(item)
 		return &dto
 	})
 }

@@ -32,11 +32,13 @@ func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []
 		"body":   dto,
 	}
 
+	log.Printf("[%d]: sending: allCardInstances", playerState.PlayerID)
+
 	// TODO: each active player should have two queues:
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	err := playerState.Connection.WriteJSON(json)
+	err := sendJson(playerState, json)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"time"
 
 	"github.com/jental/freetesl-server/db"
@@ -38,6 +39,34 @@ func GetPlayers() ([]*models.Player, error) {
 	})
 
 	return players, nil
+}
+
+func GetPlayer(playerID int) (*models.Player, error) {
+	playersFromDB, err := db.GetPlayersByIDs([]int{playerID})
+	if err != nil {
+		return nil, err
+	}
+	playerFromDB, exists := playersFromDB[playerID]
+	if !exists {
+		return nil, errors.New("player not found")
+	}
+
+	playerInfo, exists := playersRunimeInfo[playerFromDB.ID]
+
+	var state enums.PlayerState
+	if !exists {
+		state = enums.PlayerStateOffline
+	} else {
+		state = playerInfo.State
+	}
+
+	player := models.Player{
+		ID:          playerFromDB.ID,
+		DisplayName: playerFromDB.DisplayName,
+		AvatarName:  playerFromDB.AvatarName,
+		State:       state,
+	}
+	return &player, nil
 }
 
 func SetPlayerState(playerID int, state enums.PlayerState) {

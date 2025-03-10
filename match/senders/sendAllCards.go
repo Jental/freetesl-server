@@ -1,10 +1,7 @@
 package senders
 
 import (
-	"errors"
-	"fmt"
 	"log"
-	"slices"
 
 	"github.com/jental/freetesl-server/db"
 	dbModels "github.com/jental/freetesl-server/db/models"
@@ -12,49 +9,18 @@ import (
 	"github.com/jental/freetesl-server/models"
 )
 
-func SendAllCardsToEveryone(match *models.Match) {
+func SendAllCardsToPlayer(playerState *models.PlayerMatchState) error {
 	cards, err := db.GetAllCards()
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	var errChan = make(chan error)
-
-	if match.Player0State.HasValue {
-		go func() {
-			errChan <- sendAllCardsToPlayer(match.Player0State.Value, cards)
-		}()
-	}
-
-	if match.Player1State.HasValue {
-		go func() {
-			errChan <- sendAllCardsToPlayer(match.Player1State.Value, cards)
-		}()
-	}
-
-	var aggErrors = []error{
-		<-errChan,
-		<-errChan,
-	}
-
-	var errorsPresent = slices.IndexFunc(aggErrors, func(err error) bool { return err != nil }) >= 0
-	if errorsPresent {
-		fmt.Println(errors.Join(aggErrors...))
-	}
-}
-
-func SendAllCardsToPlayer(playerState *models.PlayerMatchState) {
-	cards, err := db.GetAllCards()
-	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	err = sendAllCardsToPlayer(playerState, cards)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
+
+	return nil
 }
 
 func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModels.Card) error {
@@ -68,11 +34,13 @@ func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModel
 		"body":   dto,
 	}
 
+	log.Printf("[%d]: sending: allCards", playerState.PlayerID)
+
 	// TODO: each active player should have two queues:
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	err := playerState.Connection.WriteJSON(json)
+	err := sendJson(playerState, json)
 	if err != nil {
 		return err
 	}

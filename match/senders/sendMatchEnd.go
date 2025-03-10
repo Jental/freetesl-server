@@ -18,11 +18,13 @@ func SendMatchEndToPlayer(playerState *models.PlayerMatchState, match *models.Ma
 		"body":   dto,
 	}
 
+	log.Printf("[%d]: sending: matchEnd", playerState.PlayerID)
+
 	// TODO: each active player should have two queues:
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	var err = playerState.Connection.WriteJSON(json)
+	var err = sendJson(playerState, json)
 	if err != nil {
 		return err
 	}

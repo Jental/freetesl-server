@@ -94,11 +94,11 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 		Id: uuid.New(),
 		Player0State: common.Maybe[models.PlayerMatchState]{
 			HasValue: true,
-			Value:    &playerState,
+			Value:    playerState,
 		},
 		Player1State: common.Maybe[models.PlayerMatchState]{
 			HasValue: true,
-			Value:    &opponentState,
+			Value:    opponentState,
 		},
 		PlayerWithTurnID: selectRandomPlayer(playerID, opponentID),
 		WinnerID:         -1,
@@ -113,10 +113,10 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	return &matchState.Id, nil
 }
 
-func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.PlayerMatchState, error) {
+func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.PlayerMatchState, error) {
 	decks, err := db.GetDecks(playerID)
 	if err != nil {
-		return models.PlayerMatchState{}, err
+		return nil, err
 	}
 
 	var deckInstance []*models.CardInstance = lo.Shuffle(
@@ -145,7 +145,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 
 	var playerState = models.NewPlayerMatchState(
 		playerID,
-		30,
+		2, //30,
 		5,
 		1,
 		1,
@@ -157,7 +157,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (models.P
 		conn,
 	)
 
-	return playerState, nil
+	return &playerState, nil
 }
 
 func selectRandomPlayer(player0ID int, player1ID int) int {

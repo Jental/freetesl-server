@@ -1,6 +1,8 @@
 package models
 
 import (
+	"sync"
+
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -17,12 +19,12 @@ type PlayerMatchState struct {
 	leftLaneCards  []*CardInstance
 	rightLaneCards []*CardInstance
 
-	OpponentState              *PlayerMatchState
-	MatchState                 *Match
-	Connection                 *websocket.Conn
-	ConnectionCancellationChan chan struct{}
-	PartiallyParsedMessages    chan PartiallyParsedMessage
-	Events                     chan enums.BackendEventType
+	OpponentState           *PlayerMatchState
+	MatchState              *Match
+	Connection              *websocket.Conn
+	SendMtx                 sync.Mutex
+	PartiallyParsedMessages chan PartiallyParsedMessage
+	Events                  chan enums.BackendEventType
 }
 
 func NewPlayerMatchState(
@@ -50,12 +52,11 @@ func NewPlayerMatchState(
 		mana:           mana,
 		maxMana:        maxMana,
 
-		OpponentState:              nil,
-		MatchState:                 nil,
-		Connection:                 connection,
-		ConnectionCancellationChan: make(chan struct{}, 1),
-		PartiallyParsedMessages:    make(chan PartiallyParsedMessage, 1),
-		Events:                     make(chan enums.BackendEventType, 10),
+		OpponentState:           nil,
+		MatchState:              nil,
+		Connection:              connection,
+		PartiallyParsedMessages: make(chan PartiallyParsedMessage, 1),
+		Events:                  make(chan enums.BackendEventType, 10),
 	}
 }
 
