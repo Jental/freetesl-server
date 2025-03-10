@@ -15,22 +15,24 @@ import (
 // + both players joined match (hands are visible), one concedes
 // + only one player joined match (second haven't had game window with a match active) and this player concedes; after that second player activates his window
 //     now it shows "Failed to connect" for second user - but for now it's fine
+// + only one player joined match (second haven't had game window with a match active) and this player does some action (play a card / switch turn). Then second joins.
 // + reconnect to unfinished match
+// + connect both players to match. One one players turn disconnect other one. Play a card / switch turn
 // - create new match with the same players after concede
 
 var MatchMessageHandlerFn func(playerID int, message models.PartiallyParsedMessage) error = nil
 var BackendEventHandlerFn func(playerState *models.PlayerMatchState, event enums.BackendEventType) error = nil
 
 func JoinMatch(playerState *models.PlayerMatchState) {
-	playerState.Events <- enums.BackendEventMatchStart
-	playerState.Events <- enums.BackendEventCardInstancesChanged
-	playerState.Events <- enums.BackendEventOpponentCardInstancesChanged
-	playerState.Events <- enums.BackendEventHandChanged
-	playerState.Events <- enums.BackendEventOpponentHandChanged
-	playerState.Events <- enums.BackendEventDeckChanged
-	playerState.Events <- enums.BackendEventOpponentDeckChanged
-	playerState.Events <- enums.BackendEventDiscardPileChanged
-	playerState.Events <- enums.BackendEventOpponentDiscardPileChanged
+	playerState.SendEvent(enums.BackendEventMatchStart)
+	playerState.SendEvent(enums.BackendEventCardInstancesChanged)
+	playerState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
+	playerState.SendEvent(enums.BackendEventHandChanged)
+	playerState.SendEvent(enums.BackendEventOpponentHandChanged)
+	playerState.SendEvent(enums.BackendEventDeckChanged)
+	playerState.SendEvent(enums.BackendEventOpponentDeckChanged)
+	playerState.SendEvent(enums.BackendEventDiscardPileChanged)
+	playerState.SendEvent(enums.BackendEventOpponentDiscardPileChanged)
 }
 
 func DisconnectFromMatch(playerState *models.PlayerMatchState) {
@@ -60,7 +62,14 @@ func InitListenersAfterConnectionEstablished(playerState *models.PlayerMatchStat
 }
 
 func cleanupAfterConnectionClose(playerState *models.PlayerMatchState) {
+	defer func() { // try/catch analog - to recover from second close of channel
+		if r := recover(); r != nil {
+			log.Printf("[%d]: cleaning up after disconnect: recovered from error: %s", playerState.PlayerID, r)
+		}
+	}()
+
 	log.Printf("[%d]: cleaning up after disconnect", playerState.PlayerID)
+	playerState.Connection = nil
 	close(playerState.PartiallyParsedMessages)
 	close(playerState.Events)
 	log.Printf("[%d]: cleaning up after disconnect - done", playerState.PlayerID)

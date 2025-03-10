@@ -13,24 +13,24 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
-		match.SendPlayerEvent(playerState, enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
-		match.SendPlayerEvent(opponentState, enums.BackendEventOpponentMatchStateRefresh)
+		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
+		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 
 	cardInstance, idx, err := match.GetCardInstanceFromHand(playerState, cardInstanceID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
-		match.SendPlayerEvent(playerState, enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
-		match.SendPlayerEvent(opponentState, enums.BackendEventOpponentMatchStateRefresh)
+		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
+		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 
 	err = actions.MoveCardToLane(playerState, cardInstance, idx, laneID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
-		match.SendPlayerEvent(playerState, enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
-		match.SendPlayerEvent(opponentState, enums.BackendEventOpponentMatchStateRefresh)
+		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
+		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 }

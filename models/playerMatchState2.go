@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -22,7 +23,7 @@ type PlayerMatchState struct {
 	OpponentState           *PlayerMatchState
 	MatchState              *Match
 	Connection              *websocket.Conn
-	SendMtx                 sync.Mutex
+	WebsocketSendMtx        sync.Mutex
 	PartiallyParsedMessages chan PartiallyParsedMessage
 	Events                  chan enums.BackendEventType
 }
@@ -60,34 +61,38 @@ func NewPlayerMatchState(
 	}
 }
 
+func (playerState *PlayerMatchState) SendEvent(event enums.BackendEventType) {
+	// TODO: use it everywhere instead of sending to Events channel
+	if playerState != nil && playerState.Connection != nil {
+		playerState.Events <- event
+	} else {
+		// TODO: probably add error return
+		log.Printf("[%d]: writing to Events channel that should be closed", playerState.PlayerID)
+	}
+}
+
 func (playerState *PlayerMatchState) GetDeck() []*CardInstance { return playerState.deck }
 func (playerState *PlayerMatchState) SetDeck(deck []*CardInstance) {
 	playerState.deck = deck
 
-	playerState.Events <- enums.BackendEventDeckChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentDeckChanged
-	}
+	playerState.SendEvent(enums.BackendEventDeckChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentDeckChanged)
 }
 
 func (playerState *PlayerMatchState) GetHand() []*CardInstance { return playerState.hand }
 func (playerState *PlayerMatchState) SetHand(hand []*CardInstance) {
 	playerState.hand = hand
 
-	playerState.Events <- enums.BackendEventHandChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentHandChanged
-	}
+	playerState.SendEvent(enums.BackendEventHandChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentHandChanged)
 }
 
 func (playerState *PlayerMatchState) GetDiscardPile() []*CardInstance { return playerState.discardPile }
 func (playerState *PlayerMatchState) SetDiscardPile(discardPile []*CardInstance) {
 	playerState.discardPile = discardPile
 
-	playerState.Events <- enums.BackendEventDiscardPileChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentDiscardPileChanged
-	}
+	playerState.SendEvent(enums.BackendEventDiscardPileChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentDiscardPileChanged)
 }
 
 func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstance {
@@ -96,10 +101,8 @@ func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstance {
 func (playerState *PlayerMatchState) SetLeftLaneCards(leftLaneCards []*CardInstance) {
 	playerState.leftLaneCards = leftLaneCards
 
-	playerState.Events <- enums.BackendEventLanesChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentLanesChanged
-	}
+	playerState.SendEvent(enums.BackendEventLanesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
 
 func (playerState *PlayerMatchState) GetRightLaneCards() []*CardInstance {
@@ -108,48 +111,38 @@ func (playerState *PlayerMatchState) GetRightLaneCards() []*CardInstance {
 func (playerState *PlayerMatchState) SetRightLaneCards(rightLaneCards []*CardInstance) {
 	playerState.rightLaneCards = rightLaneCards
 
-	playerState.Events <- enums.BackendEventLanesChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentLanesChanged
-	}
+	playerState.SendEvent(enums.BackendEventLanesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
 
 func (playerState *PlayerMatchState) GetHealth() int { return playerState.health }
 func (playerState *PlayerMatchState) SetHealth(health int) {
 	playerState.health = health
 
-	playerState.Events <- enums.BackendEventHealthChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentHealthChanged
-	}
+	playerState.SendEvent(enums.BackendEventHealthChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentHealthChanged)
 }
 
 func (playerState *PlayerMatchState) GetRunes() byte { return playerState.runes }
 func (playerState *PlayerMatchState) SetRunes(runes byte) {
 	playerState.runes = runes
 
-	playerState.Events <- enums.BackendEventHealthChanged // decided to reuse event
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentHealthChanged
-	}
+	playerState.SendEvent(enums.BackendEventHealthChanged) // decided to reuse event
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentHealthChanged)
 }
 
 func (playerState *PlayerMatchState) GetMana() int { return playerState.mana }
 func (playerState *PlayerMatchState) SetMana(mana int) {
 	playerState.mana = mana
 
-	playerState.Events <- enums.BackendEventManaChanged
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentManaChanged
-	}
+	playerState.SendEvent(enums.BackendEventManaChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentManaChanged)
 }
 
 func (playerState *PlayerMatchState) GetMaxMana() int { return playerState.maxMana }
 func (playerState *PlayerMatchState) SetMaxMana(maxMana int) {
 	playerState.maxMana = maxMana
 
-	playerState.Events <- enums.BackendEventManaChanged // decided to reuse event
-	if playerState.OpponentState != nil {
-		playerState.OpponentState.Events <- enums.BackendEventOpponentManaChanged
-	}
+	playerState.SendEvent(enums.BackendEventManaChanged) // decided to reuse event
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentManaChanged)
 }

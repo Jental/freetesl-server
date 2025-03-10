@@ -31,8 +31,8 @@ func SwitchTurn(matchState *models.Match) {
 		matchState.PlayerWithTurnID = matchState.Player0State.Value.PlayerID
 	}
 
-	matchState.Player0State.Value.Events <- enums.BackendEventSwitchTurn
-	matchState.Player1State.Value.Events <- enums.BackendEventSwitchTurn
+	matchState.Player0State.Value.SendEvent(enums.BackendEventSwitchTurn)
+	matchState.Player1State.Value.SendEvent(enums.BackendEventSwitchTurn)
 }
 
 func MoveCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID byte) error {
@@ -107,8 +107,8 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 		}
 	}
 
-	playerState.Events <- enums.BackendEventLanesChanged
-	playerState.OpponentState.Events <- enums.BackendEventOpponentLanesChanged
+	playerState.SendEvent(enums.BackendEventLanesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 
 	return nil
 }

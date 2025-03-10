@@ -11,8 +11,8 @@ func sendJson(playerState *models.PlayerMatchState, json map[string]interface{})
 		return fmt.Errorf("[%d]: sendJson: connection already closed", playerState.PlayerID)
 	}
 
-	playerState.SendMtx.Lock()
-	defer playerState.SendMtx.Unlock()
+	playerState.WebsocketSendMtx.Lock()
+	defer playerState.WebsocketSendMtx.Unlock()
 
 	return playerState.Connection.WriteJSON(json)
 }

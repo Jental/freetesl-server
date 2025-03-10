@@ -46,6 +46,6 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 
 	cardInstance.IsActive = false
 
-	playerState.Events <- enums.BackendEventLanesChanged
-	opponentState.Events <- enums.BackendEventLanesChanged
+	playerState.SendEvent(enums.BackendEventLanesChanged)
+	opponentState.SendEvent(enums.BackendEventLanesChanged)
 }
