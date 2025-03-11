@@ -11,7 +11,14 @@ import (
 )
 
 func GetPlayers(w http.ResponseWriter, req *http.Request) {
-	var players, err = services.GetPlayers()
+	var urlParameters = req.URL.Query()
+	var inGameStrs, exists = urlParameters["inGame"]
+	var onlyInGamePlayers = false
+	if exists && len(inGameStrs) > 0 {
+		onlyInGamePlayers = inGameStrs[0] == "true" || inGameStrs[0] == "1"
+	}
+
+	var players, err = services.GetPlayers(onlyInGamePlayers)
 	if err != nil {
 		log.Println(err)
 		return

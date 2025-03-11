@@ -43,10 +43,10 @@ func Login(w http.ResponseWriter, req *http.Request) {
 			log.Println(err)
 			return
 		}
-		responseDTO = dtos.LoginResponseDTO{Valid: true, Token: &jwt}
+		responseDTO = dtos.LoginResponseDTO{Valid: true, Token: &jwt, PlayerID: *userID}
 	} else {
 		log.Printf("Login: [%s]: failed", request.Login)
-		responseDTO = dtos.LoginResponseDTO{Valid: false, Token: nil}
+		responseDTO = dtos.LoginResponseDTO{Valid: false, Token: nil, PlayerID: -1}
 	}
 
 	if valid {

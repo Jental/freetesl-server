@@ -13,13 +13,13 @@ import (
 
 var playersRunimeInfo map[int]*models.PlayerRuntimeInformation = make(map[int]*models.PlayerRuntimeInformation)
 
-func GetPlayers() ([]*models.Player, error) {
+func GetPlayers(onlyInGamePlayers bool) ([]*models.Player, error) {
 	playersFromDB, err := db.GetPlayers()
 	if err != nil {
 		return nil, err
 	}
 
-	var players = lo.Map(playersFromDB, func(p *dbModels.Player, _ int) *models.Player {
+	var players = lo.FilterMap(playersFromDB, func(p *dbModels.Player, _ int) (*models.Player, bool) {
 		playerInfo, exists := playersRunimeInfo[p.ID]
 
 		var state enums.PlayerState
@@ -29,13 +29,17 @@ func GetPlayers() ([]*models.Player, error) {
 			state = playerInfo.State
 		}
 
+		if onlyInGamePlayers && state == enums.PlayerStateOffline {
+			return nil, false
+		}
+
 		player := models.Player{
 			ID:          p.ID,
 			DisplayName: p.DisplayName,
 			AvatarName:  p.AvatarName,
 			State:       state,
 		}
-		return &player
+		return &player, true
 	})
 
 	return players, nil
