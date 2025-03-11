@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/actions"
+	"github.com/jental/freetesl-server/match/coreOperations"
 )
 
 func HitFace(playerID int, cardInstanceID uuid.UUID) {
@@ -26,6 +26,6 @@ func HitFace(playerID int, cardInstanceID uuid.UUID) {
 		return
 	}
 
-	actions.ReducePlayerHealth(opponentState, cardInstance.Power)
+	coreOperations.ReducePlayerHealth(opponentState, cardInstance.Power)
 	cardInstance.IsActive = false
 }

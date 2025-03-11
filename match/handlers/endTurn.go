@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/actions"
+	"github.com/jental/freetesl-server/match/coreOperations"
 )
 
 func EndTurn(playerID int) {
@@ -21,6 +21,6 @@ func EndTurn(playerID int) {
 		card.IsActive = false
 	}
 
-	actions.SwitchTurn(matchState)
-	actions.StartTurn(opponentState)
+	coreOperations.SwitchTurn(matchState)
+	coreOperations.StartTurn(opponentState)
 }

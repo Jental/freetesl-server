@@ -16,7 +16,7 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/actions"
+	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
@@ -114,7 +114,7 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	} else {
 		playerWithTurn = opponentState
 	}
-	actions.StartTurn(playerWithTurn)
+	coreOperations.StartTurn(playerWithTurn)
 
 	services.SetPlayerState(playerID, enums.PlayerStateInMatch)
 	services.SetPlayerState(opponentID, enums.PlayerStateInMatch)

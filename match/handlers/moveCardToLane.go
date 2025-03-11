@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/actions"
+	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -26,7 +26,7 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
 		return
 	}
 
-	err = actions.MoveCardToLane(playerState, cardInstance, idx, laneID)
+	err = coreOperations.MoveCardToLane(playerState, cardInstance, idx, laneID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

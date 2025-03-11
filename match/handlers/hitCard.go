@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/actions"
+	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -38,13 +38,13 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
-	err = actions.ReduceCardHealth(opponentState, opponentCardInstance, opponentLaneID, cardInstance.Power)
+	err = coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLaneID, cardInstance.Power)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		return
 	}
 
-	err = actions.ReduceCardHealth(playerState, cardInstance, laneID, opponentCardInstance.Power)
+	err = coreOperations.ReduceCardHealth(playerState, cardInstance, laneID, opponentCardInstance.Power)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		return
