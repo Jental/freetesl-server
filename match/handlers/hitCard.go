@@ -44,6 +44,12 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
+	err = actions.ReduceCardHealth(playerState, cardInstance, laneID, opponentCardInstance.Power)
+	if err != nil {
+		fmt.Printf("[%d]: %s", playerID, err)
+		return
+	}
+
 	cardInstance.IsActive = false
 
 	playerState.SendEvent(enums.BackendEventLanesChanged)
