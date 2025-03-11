@@ -5,7 +5,6 @@ import (
 
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/actions"
-	"github.com/jental/freetesl-server/models"
 )
 
 func EndTurn(playerID int) {
@@ -23,19 +22,5 @@ func EndTurn(playerID int) {
 	}
 
 	actions.SwitchTurn(matchState)
-
-	startTurn(opponentState)
-}
-
-func startTurn(playerState *models.PlayerMatchState) {
-	playerState.SetMaxMana(playerState.GetMaxMana() + 1)
-	playerState.SetMana(playerState.GetMaxMana())
-	actions.DrawCard(playerState)
-
-	for _, card := range playerState.GetLeftLaneCards() {
-		card.IsActive = true
-	}
-	for _, card := range playerState.GetRightLaneCards() {
-		card.IsActive = true
-	}
+	actions.StartTurn(opponentState)
 }

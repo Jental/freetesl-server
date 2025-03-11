@@ -112,3 +112,16 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 
 	return nil
 }
+
+func StartTurn(playerState *models.PlayerMatchState) {
+	playerState.SetMaxMana(playerState.GetMaxMana() + 1)
+	playerState.SetMana(playerState.GetMaxMana())
+	DrawCard(playerState)
+
+	for _, card := range playerState.GetLeftLaneCards() {
+		card.IsActive = true
+	}
+	for _, card := range playerState.GetRightLaneCards() {
+		card.IsActive = true
+	}
+}

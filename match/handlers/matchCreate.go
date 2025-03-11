@@ -16,6 +16,7 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/actions"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
@@ -107,6 +108,14 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	match.AddOrRefreshMatch(&matchState)
 	updateMatchPlayerFields(&matchState)
 
+	var playerWithTurn *models.PlayerMatchState
+	if matchState.PlayerWithTurnID == playerID {
+		playerWithTurn = playerState
+	} else {
+		playerWithTurn = opponentState
+	}
+	actions.StartTurn(playerWithTurn)
+
 	services.SetPlayerState(playerID, enums.PlayerStateInMatch)
 	services.SetPlayerState(opponentID, enums.PlayerStateInMatch)
 
@@ -145,10 +154,10 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.
 
 	var playerState = models.NewPlayerMatchState(
 		playerID,
-		2, //30,
+		30,
 		5,
-		1,
-		1,
+		0,
+		0,
 		leftDeck,
 		hand,
 		[]*models.CardInstance{},
