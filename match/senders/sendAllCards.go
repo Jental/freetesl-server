@@ -3,14 +3,14 @@ package senders
 import (
 	"log"
 
-	"github.com/jental/freetesl-server/db"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/mappers"
 	"github.com/jental/freetesl-server/models"
 )
 
 func SendAllCardsToPlayer(playerState *models.PlayerMatchState) error {
-	cards, err := db.GetAllCards()
+	cards, err := queries.GetAllCards()
 	if err != nil {
 		return err
 	}

@@ -115,6 +115,14 @@ func (playerState *PlayerMatchState) SetRightLaneCards(rightLaneCards []*CardIns
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
 
+func (playerState *PlayerMatchState) GetLaneCards(laneID enums.Lane) []*CardInstance {
+	if laneID == enums.LaneRight {
+		return playerState.GetRightLaneCards()
+	} else {
+		return playerState.GetLeftLaneCards()
+	}
+}
+
 func (playerState *PlayerMatchState) GetHealth() int { return playerState.health }
 func (playerState *PlayerMatchState) SetHealth(health int) {
 	playerState.health = health

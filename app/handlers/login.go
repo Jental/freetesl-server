@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jental/freetesl-server/common"
-	"github.com/jental/freetesl-server/db"
+	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
@@ -36,7 +36,7 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	log.Printf("Login: [%s]: password: '%s'\n", request.Login, request.PasswordSha512)
 
 	var responseDTO dtos.LoginResponseDTO
-	valid, userID := db.VerifyUser(request.Login, request.PasswordSha512)
+	valid, userID := queries.VerifyUser(request.Login, request.PasswordSha512)
 	if valid {
 		jwt, err := generateJWT(request.Login, *userID)
 		if err != nil {

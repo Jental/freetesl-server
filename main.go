@@ -8,7 +8,10 @@ import (
 	appHandlers "github.com/jental/freetesl-server/app/handlers"
 	"github.com/jental/freetesl-server/match"
 	matchHandlers "github.com/jental/freetesl-server/match/handlers"
+	matchInterceptors "github.com/jental/freetesl-server/match/interceptors"
 	matchSenders "github.com/jental/freetesl-server/match/senders"
+	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 )
 
@@ -22,6 +25,9 @@ func main() {
 
 	match.MatchMessageHandlerFn = matchHandlers.ProcessMatchMessage
 	match.BackendEventHandlerFn = matchSenders.ProcessBackendEvent
+
+	var guardInterceptor models.Interceptor = matchInterceptors.GuardInterceptor{}
+	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitFaceBefore, &guardInterceptor)
 
 	http.Handle("POST /login", http.HandlerFunc(appHandlers.Login))
 	http.Handle("POST /logout", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.Logout))))

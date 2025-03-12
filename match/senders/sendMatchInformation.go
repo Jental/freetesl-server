@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jental/freetesl-server/db"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
@@ -29,7 +29,7 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 	} else {
 		playerIDs = []int{playerID}
 	}
-	players, err := db.GetPlayersByIDs(playerIDs)
+	players, err := queries.GetPlayersByIDs(playerIDs)
 	if err != nil {
 		return err
 	}

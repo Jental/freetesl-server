@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/models/enums"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -22,7 +23,8 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		if err != nil {
 			return err
 		}
-		go MoveCardToLane(playerID, cardInstanceID, dto.LaneID)
+		laneID := enums.Lane(dto.LaneID)
+		go MoveCardToLane(playerID, cardInstanceID, laneID)
 	case "hitFace":
 		var dto dtos.HitFaceDTO
 		mapstructure.Decode(message.Body, &dto)

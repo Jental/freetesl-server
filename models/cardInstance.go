@@ -7,7 +7,7 @@ import (
 )
 
 type CardInstance struct {
-	Card           models.Card
+	Card           *models.Card
 	CardInstanceID uuid.UUID
 	Power          int
 	Health         int

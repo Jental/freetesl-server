@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jental/freetesl-server/db"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/samber/lo"
@@ -14,7 +14,7 @@ import (
 var playersRunimeInfo map[int]*models.PlayerRuntimeInformation = make(map[int]*models.PlayerRuntimeInformation)
 
 func GetPlayers(onlyInGamePlayers bool) ([]*models.Player, error) {
-	playersFromDB, err := db.GetPlayers()
+	playersFromDB, err := queries.GetPlayers()
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func GetPlayers(onlyInGamePlayers bool) ([]*models.Player, error) {
 }
 
 func GetPlayer(playerID int) (*models.Player, error) {
-	playersFromDB, err := db.GetPlayersByIDs([]int{playerID})
+	playersFromDB, err := queries.GetPlayersByIDs([]int{playerID})
 	if err != nil {
 		return nil, err
 	}

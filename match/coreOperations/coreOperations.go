@@ -35,19 +35,19 @@ func SwitchTurn(matchState *models.Match) {
 	matchState.Player1State.Value.SendEvent(enums.BackendEventSwitchTurn)
 }
 
-func MoveCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID byte) error {
+func MoveCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID enums.Lane) error {
 	var currentMana = playerState.GetMana()
 
 	if cardInstance.Cost > currentMana {
 		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, currentMana)
 	}
 
-	if laneID == common.LEFT_LANE_ID {
+	if laneID == enums.LaneLeft {
 		if len(playerState.GetLeftLaneCards()) >= common.MAX_LANE_CARDS {
 			return errors.New("lane is already full")
 		}
 		playerState.SetLeftLaneCards(append(playerState.GetLeftLaneCards(), cardInstance))
-	} else if laneID == common.RIGHT_LANE_ID {
+	} else if laneID == enums.LaneRight {
 		if len(playerState.GetRightLaneCards()) >= common.MAX_LANE_CARDS {
 			return errors.New("lane is already full")
 		}
@@ -79,15 +79,11 @@ func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	}
 }
 
-func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID byte, amount int) error {
+func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane, amount int) error {
 	cardInstance.Health = cardInstance.Health - amount
 
 	if cardInstance.Health <= 0 {
-		if laneID != common.LEFT_LANE_ID && laneID != common.RIGHT_LANE_ID {
-			return fmt.Errorf("invalid lane ID: %d", laneID)
-		}
-
-		if laneID == common.LEFT_LANE_ID {
+		if laneID == enums.LaneLeft {
 			var idx = slices.Index(playerState.GetLeftLaneCards(), cardInstance)
 			if idx < 0 {
 				return errors.New("player does have the card in a left lane")

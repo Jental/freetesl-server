@@ -9,7 +9,7 @@ import (
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID byte) {
+func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.Lane) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)

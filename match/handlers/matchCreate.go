@@ -3,17 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"log"
-	"maps"
 	"math/rand"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/common"
-	"github.com/jental/freetesl-server/db"
-	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/coreOperations"
@@ -123,15 +119,15 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 }
 
 func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.PlayerMatchState, error) {
-	decks, err := db.GetDecks(playerID)
+	decks, err := services.GetDecks(playerID)
 	if err != nil {
 		return nil, err
 	}
 
 	var deckInstance []*models.CardInstance = lo.Shuffle(
 		lo.FlatMap(
-			slices.Collect(maps.Values(decks[0].Cards)),
-			func(cardWithCount dbModels.CardWithCount, _ int) []*models.CardInstance {
+			decks[0].Cards,
+			func(cardWithCount *models.CardWithCount, _ int) []*models.CardInstance {
 				return lo.Times(cardWithCount.Count, func(_ int) *models.CardInstance {
 					return &models.CardInstance{
 						Card:           cardWithCount.Card,

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -153,15 +152,15 @@ func GetCardInstanceFromHand(playerState *models.PlayerMatchState, cardInstanceI
 	return playerState.GetHand()[idx], idx, nil
 }
 
-func GetCardInstanceFromLanes(playerState *models.PlayerMatchState, cardInstanceID uuid.UUID) (*models.CardInstance, byte, int, error) {
+func GetCardInstanceFromLanes(playerState *models.PlayerMatchState, cardInstanceID uuid.UUID) (*models.CardInstance, enums.Lane, int, error) {
 	var idx = slices.IndexFunc(playerState.GetLeftLaneCards(), func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
 	if idx >= 0 {
-		return playerState.GetLeftLaneCards()[idx], common.LEFT_LANE_ID, idx, nil
+		return playerState.GetLeftLaneCards()[idx], enums.LaneLeft, idx, nil
 	}
 
 	idx = slices.IndexFunc(playerState.GetRightLaneCards(), func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
 	if idx >= 0 {
-		return playerState.GetRightLaneCards()[idx], common.RIGHT_LANE_ID, idx, nil
+		return playerState.GetRightLaneCards()[idx], enums.LaneRight, idx, nil
 	}
 
 	return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)

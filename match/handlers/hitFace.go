@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/operations"
 )
 
 func HitFace(playerID int, cardInstanceID uuid.UUID) {
@@ -15,17 +16,14 @@ func HitFace(playerID int, cardInstanceID uuid.UUID) {
 		return
 	}
 
-	cardInstance, _, _, err := match.GetCardInstanceFromLanes(playerState, cardInstanceID)
+	cardInstance, laneID, _, err := match.GetCardInstanceFromLanes(playerState, cardInstanceID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		return
 	}
 
-	if !cardInstance.IsActive {
-		fmt.Println(fmt.Errorf("[%d]: card with id '%s' is not active", playerID, cardInstanceID.String()))
-		return
+	err = operations.HitFace(playerState, opponentState, cardInstance, laneID)
+	if err != nil {
+		log.Println(err)
 	}
-
-	coreOperations.ReducePlayerHealth(opponentState, cardInstance.Power)
-	cardInstance.IsActive = false
 }
