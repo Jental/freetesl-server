@@ -45,6 +45,18 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 			return err
 		}
 		go HitCard(playerID, cardInstanceID, opponentCardInstanceID)
+	case "applyActionToCard":
+		var dto dtos.ApplyActionToCardDTO
+		mapstructure.Decode(message.Body, &dto)
+		cardInstanceID, err := uuid.Parse(dto.CardInstanceID)
+		if err != nil {
+			return err
+		}
+		opponentCardInstanceID, err := uuid.Parse(dto.OpponentCardInstanceID)
+		if err != nil {
+			return err
+		}
+		go ApplyActionToCard(playerID, cardInstanceID, opponentCardInstanceID)
 	case "concede":
 		go Concede(playerID)
 	}

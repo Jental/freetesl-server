@@ -30,11 +30,15 @@ func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerM
 		return err
 	}
 
-	interceptorContext := models.InterceptorContext{
-		PlayerState:   playerState,
-		OpponentState: opponentState,
-		LaneID:        &laneID,
-	}
+	interceptorContext := models.NewInterceptorContext(
+		playerState,
+		opponentState,
+		opponentState,
+		&cardInstance.Card.ID,
+		&laneID,
+		nil,
+		nil,
+	)
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointHitFaceBefore, &interceptorContext)
 	if err != nil {
 		return err

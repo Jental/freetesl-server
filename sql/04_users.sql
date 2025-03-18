@@ -10,6 +10,7 @@ INSERT INTO deck_cards (deck_id, card_id, count)
 VALUES (1, 1, 7),
        (1, 2, 8),
        (1, 3, 9),
+       (1, 4, 9),
        (2, 1, 8),
        (2, 2, 7),
        (2, 3, 9);

@@ -5,21 +5,16 @@ import (
 
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/models"
-	"github.com/jental/freetesl-server/models/enums"
 )
 
 type GuardInterceptor struct{}
 
-func (ic GuardInterceptor) GetInterceptorPoint() enums.InteceptorPoint {
-	return enums.InterceptorPointHitFaceBefore
-}
-
 func (ic GuardInterceptor) Execute(context *models.InterceptorContext) error {
-	if context.LaneID == nil {
+	if context.SourceLaneID == nil {
 		return fmt.Errorf("[%d]: GuardInterceptor: no lane id specified", context.PlayerState.PlayerID)
 	}
 
-	opponentLaneCards := context.OpponentState.GetLaneCards(*context.LaneID)
+	opponentLaneCards := context.OpponentState.GetLaneCards(*context.SourceLaneID)
 
 	opponentGuardPresent := false
 OuterLoop:

@@ -1,11 +1,6 @@
 package coreOperations
 
 import (
-	"errors"
-	"fmt"
-	"slices"
-
-	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
@@ -35,32 +30,12 @@ func SwitchTurn(matchState *models.Match) {
 	matchState.Player1State.Value.SendEvent(enums.BackendEventSwitchTurn)
 }
 
-func MoveCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID enums.Lane) error {
-	var currentMana = playerState.GetMana()
-
-	if cardInstance.Cost > currentMana {
-		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, currentMana)
-	}
-
+func PlaceCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane) {
 	if laneID == enums.LaneLeft {
-		if len(playerState.GetLeftLaneCards()) >= common.MAX_LANE_CARDS {
-			return errors.New("lane is already full")
-		}
 		playerState.SetLeftLaneCards(append(playerState.GetLeftLaneCards(), cardInstance))
 	} else if laneID == enums.LaneRight {
-		if len(playerState.GetRightLaneCards()) >= common.MAX_LANE_CARDS {
-			return errors.New("lane is already full")
-		}
 		playerState.SetRightLaneCards(append(playerState.GetRightLaneCards(), cardInstance))
-	} else {
-		return fmt.Errorf("invalid lane id: %d", laneID)
 	}
-
-	cardInstance.IsActive = false
-	playerState.SetHand(slices.Delete(playerState.GetHand(), cardInHandIdx, cardInHandIdx+1))
-	playerState.SetMana(currentMana - cardInstance.Cost)
-
-	return nil
 }
 
 func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
@@ -83,24 +58,7 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 	cardInstance.Health = cardInstance.Health - amount
 
 	if cardInstance.Health <= 0 {
-		if laneID == enums.LaneLeft {
-			var idx = slices.Index(playerState.GetLeftLaneCards(), cardInstance)
-			if idx < 0 {
-				return errors.New("player does have the card in a left lane")
-			}
-
-			playerState.SetLeftLaneCards(slices.Delete(playerState.GetLeftLaneCards(), idx, idx+1))
-			playerState.SetDiscardPile(append(playerState.GetDiscardPile(), cardInstance))
-
-		} else {
-			var idx = slices.Index(playerState.GetRightLaneCards(), cardInstance)
-			if idx < 0 {
-				return errors.New("player does have the card in a right lane")
-			}
-
-			playerState.SetRightLaneCards(slices.Delete(playerState.GetRightLaneCards(), idx, idx+1))
-			playerState.SetDiscardPile(append(playerState.GetDiscardPile(), cardInstance))
-		}
+		DiscardCardFromLane(playerState, cardInstance, laneID)
 	}
 
 	playerState.SendEvent(enums.BackendEventLanesChanged)

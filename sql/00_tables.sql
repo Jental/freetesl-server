@@ -55,6 +55,14 @@ CREATE TABLE card_keywords (
     PRIMARY KEY (card_id, keyword_id)
 );
 
+CREATE TABLE card_actions (
+    id serial PRIMARY KEY,
+    card_id int NOT NULL REFERENCES cards(id),
+    action_id varchar(255) NOT NULL,
+    interceptor_point_id varchar(255) NOT NULL,
+    actions_parameters_values varchar(1023)
+);
+
 CREATE TABLE players (
     id serial PRIMARY KEY,
     login varchar(255) NOT NULL UNIQUE,

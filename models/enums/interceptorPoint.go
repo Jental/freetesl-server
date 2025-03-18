@@ -3,6 +3,9 @@ package enums
 type InteceptorPoint string
 
 const (
-	InterceptorPointHitFaceBefore InteceptorPoint = "operations.hitFace:before"
-	InterceptorPointHitFaceAfter  InteceptorPoint = "operations.hitFace:after"
+	InterceptorPointCardPlay                     InteceptorPoint = "operations.cardPlay"
+	InterceptorPointMoveCardFromHandToLaneBefore InteceptorPoint = "operations.moveCardFromHandToLane:before"
+	InterceptorPointMoveCardFromHandToLaneAfter  InteceptorPoint = "operations.moveCardFromHandToLane:after"
+	InterceptorPointHitFaceBefore                InteceptorPoint = "operations.hitFace:before"
+	InterceptorPointHitFaceAfter                 InteceptorPoint = "operations.hitFace:after"
 )
