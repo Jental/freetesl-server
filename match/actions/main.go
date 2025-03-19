@@ -23,8 +23,11 @@ func ExecuteAction(actionID enums.ActionID, context *models.ActionContext) error
 
 // all existing actions are expected to be registered => registering them here, not in the main file
 func RegisterAllActions() {
-	var action models.Action = DealDamageToCreatureAction{}
-	actions[enums.ActionIDDealDamageToCreature] = &action
+	var dealDamageToCreatureAction models.Action = DealDamageToCreatureAction{}
+	actions[enums.ActionIDDealDamageToCreature] = &dealDamageToCreatureAction
+
+	var drawCardsAction models.Action = DrawCardsAction{}
+	actions[enums.ActionIDDrawCards] = &drawCardsAction
 }
 
 func RegisterActionsForCards() {

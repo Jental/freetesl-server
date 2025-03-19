@@ -14,4 +14,5 @@ VALUES (3, 4);
 
 INSERT INTO card_actions (card_id, action_id, interceptor_point_id, actions_parameters_values)
 VALUES (4, 'deal_damage_to_creature', 'operations.cardPlay', '1'),
-       (4, 'shackle', 'operations.cardPlay', NULL);
+       (4, 'shackle', 'operations.cardPlay', NULL),
+       (2, 'draw_cards', 'operations.moveCardFromHandToLane:after', '1');
