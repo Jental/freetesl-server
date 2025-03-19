@@ -61,6 +61,10 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 		DiscardCardFromLane(playerState, cardInstance, laneID)
 	}
 
+	playerState.SendEvent(enums.BackendEventCardInstancesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
+
+	// to force lanes redraw
 	playerState.SendEvent(enums.BackendEventLanesChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 
