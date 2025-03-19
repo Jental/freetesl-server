@@ -30,3 +30,8 @@ func RegisterInterceptor(point enums.InteceptorPoint, interceptor *models.Interc
 	}
 	interceptors[point] = append(ics, interceptor)
 }
+
+func RegisterAllSpecialCardsInterceptors() {
+	var brumaProfiteerInterceptor models.Interceptor = BrumaProfiteerInterceptor{}
+	RegisterInterceptor(enums.InterceptorPointMoveCardFromHandToLaneAfter, &brumaProfiteerInterceptor)
+}

@@ -21,7 +21,7 @@ func ExecuteAction(actionID enums.ActionID, context *models.ActionContext) error
 	return (*action).Execute(context)
 }
 
-// all existing actions are expected to be registered => regietring them here, not in the main file
+// all existing actions are expected to be registered => registering them here, not in the main file
 func RegisterAllActions() {
 	var action models.Action = DealDamageToCreatureAction{}
 	actions[enums.ActionIDDealDamageToCreature] = &action

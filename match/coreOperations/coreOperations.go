@@ -54,6 +54,11 @@ func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	}
 }
 
+func IncreasePlayerHealth(playerState *models.PlayerMatchState, amount int) {
+	var updatedHealth = playerState.GetHealth() + amount
+	playerState.SetHealth(updatedHealth)
+}
+
 func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane, amount int) error {
 	cardInstance.Health = cardInstance.Health - amount
 

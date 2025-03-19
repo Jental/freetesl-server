@@ -123,6 +123,13 @@ func (playerState *PlayerMatchState) GetLaneCards(laneID enums.Lane) []*CardInst
 	}
 }
 
+func (playerState *PlayerMatchState) GetAllLaneCards() []*CardInstance {
+	var result []*CardInstance
+	result = append(result, playerState.GetLeftLaneCards()...)
+	result = append(result, playerState.GetRightLaneCards()...)
+	return result
+}
+
 func (playerState *PlayerMatchState) GetHealth() int { return playerState.health }
 func (playerState *PlayerMatchState) SetHealth(health int) {
 	playerState.health = health

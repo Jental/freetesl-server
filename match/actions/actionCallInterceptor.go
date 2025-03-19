@@ -12,7 +12,7 @@ type ActionCallInterceptor struct {
 }
 
 func (ic ActionCallInterceptor) Execute(context *models.InterceptorContext) error {
-	if context.CardID == nil || *(context.CardID) != ic.CardID {
+	if context.CardID != ic.CardID {
 		return nil // for some other card
 	}
 
