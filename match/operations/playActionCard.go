@@ -11,7 +11,7 @@ import (
 )
 
 // TODO: implement with inteface after signature becomes clear
-func playActionCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) error {
+func playActionCardCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) error {
 	if cardInstance.Card.Type != dbEnums.CardTypeAction {
 		return fmt.Errorf("[%d]: card with id '%s' is not an action", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
@@ -20,13 +20,20 @@ func playActionCheck(playerState *models.PlayerMatchState, cardInstance *models.
 		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
 
+	var currentMana = playerState.GetMana()
+	if cardInstance.Cost > currentMana {
+		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, currentMana)
+	}
+
 	return nil
 }
 
 // logic itself
-func playAction(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) {
+func playActionCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) {
 	coreOperations.DiscardCardFromHand(playerState, cardInstance)
 	cardInstance.IsActive = false
+	var currentMana = playerState.GetMana()
+	playerState.SetMana(currentMana - cardInstance.Cost)
 }
 
 func PlayActionCard(
@@ -37,12 +44,12 @@ func PlayActionCard(
 	isTargetCardFromOpponent bool,
 	targetLaneID *enums.Lane,
 ) error {
-	err := playActionCheck(playerState, cardInstance)
+	err := playActionCardCheck(playerState, cardInstance)
 	if err != nil {
 		return err
 	}
 
-	playAction(playerState, cardInstance)
+	playActionCard(playerState, cardInstance)
 
 	targetPlayerState := opponentState
 	if !isTargetCardFromOpponent {
