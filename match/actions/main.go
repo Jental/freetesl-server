@@ -28,6 +28,9 @@ func RegisterAllActions() {
 
 	var drawCardsAction models.Action = DrawCardsAction{}
 	actions[enums.ActionIDDrawCards] = &drawCardsAction
+
+	var shackleAction models.Action = ShackleAction{}
+	actions[enums.ActionShackle] = &shackleAction
 }
 
 func RegisterActionsForCards() {

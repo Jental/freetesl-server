@@ -12,7 +12,7 @@ import (
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/operations"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
@@ -87,6 +87,8 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 		return nil, err
 	}
 
+	playerWithTurnID := selectRandomPlayer(playerID, opponentID)
+
 	var matchState = models.Match{
 		Id: uuid.New(),
 		Player0State: common.Maybe[models.PlayerMatchState]{
@@ -97,8 +99,10 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 			HasValue: true,
 			Value:    opponentState,
 		},
-		PlayerWithTurnID: selectRandomPlayer(playerID, opponentID),
-		WinnerID:         -1,
+		TurnID:                0,
+		PlayerWithTurnID:      playerWithTurnID,
+		PlayerWithFirstTurnID: playerWithTurnID,
+		WinnerID:              -1,
 	}
 
 	match.AddOrRefreshMatch(&matchState)
@@ -110,7 +114,7 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	} else {
 		playerWithTurn = opponentState
 	}
-	coreOperations.StartTurn(playerWithTurn)
+	operations.StartTurn(playerWithTurn, &matchState)
 
 	services.SetPlayerState(playerID, enums.PlayerStateInMatch)
 	services.SetPlayerState(opponentID, enums.PlayerStateInMatch)
@@ -137,6 +141,7 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.
 						Cost:           cardWithCount.Card.Cost,
 						Keywords:       cardWithCount.Card.Keywords,
 						IsActive:       false,
+						Effects:        make([]*models.Effect, 0),
 					}
 				})
 			}))

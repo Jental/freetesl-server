@@ -15,14 +15,14 @@ func mapToCardDTO(model *dbModels.Card) dtos.CardDTO {
 		Power:  model.Power,
 		Health: model.Health,
 		Cost:   model.Cost,
-		Keywords: lo.Map[enums.CardKeyword, int](
+		Keywords: lo.Map(
 			model.Keywords,
 			func(item enums.CardKeyword, _ int) int { return int(item) }),
 	}
 }
 
 func MapToAllCardsDTO(model []*dbModels.Card) []*dtos.CardDTO {
-	return lo.Map[*dbModels.Card, *dtos.CardDTO](
+	return lo.Map(
 		model,
 		func(item *dbModels.Card, _ int) *dtos.CardDTO { var dto = mapToCardDTO(item); return &dto })
 }

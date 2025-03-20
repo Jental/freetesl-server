@@ -1,17 +1,26 @@
 package models
 
 import (
+	"slices"
+
 	"github.com/google/uuid"
-	"github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/db/models"
+	dbEnums "github.com/jental/freetesl-server/db/enums"
+	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/models/enums"
 )
 
 type CardInstance struct {
-	Card           *models.Card
+	Card           *dbModels.Card
 	CardInstanceID uuid.UUID
 	Power          int
 	Health         int
 	Cost           int
-	Keywords       []enums.CardKeyword
+	Keywords       []dbEnums.CardKeyword
 	IsActive       bool
+	Effects        []*Effect
+}
+
+func (cardInstance *CardInstance) IsShackled() bool {
+	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == enums.EffectTypeShackled })
+	return idx >= 0
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/operations"
 )
 
 func EndTurn(playerID int) {
@@ -22,5 +23,5 @@ func EndTurn(playerID int) {
 	}
 
 	coreOperations.SwitchTurn(matchState)
-	coreOperations.StartTurn(opponentState)
+	operations.StartTurn(opponentState, matchState)
 }

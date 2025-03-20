@@ -9,4 +9,5 @@ type CardInstanceDTO struct {
 	Health         int       `json:"health"`
 	Cost           int       `json:"cost"`
 	Keywords       []int     `json:"keywords"` // we don't use []byte here because it's serialized as Base64
+	Effects        []int     `json:"effects"`  // we don't use []byte here because it's serialized as Base64
 }

@@ -3,7 +3,7 @@ package mappers
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/db/enums"
+	dbEnums "github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models"
 	"github.com/samber/lo"
@@ -16,7 +16,11 @@ func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
 		Power:          model.Power,
 		Health:         model.Health,
 		Cost:           model.Cost,
-		Keywords:       lo.Map(model.Keywords, func(kwd enums.CardKeyword, _ int) int { return int(kwd) }),
+		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
+		Effects:        lo.Map(model.Effects, func(eff *models.Effect, _ int) int { return int(eff.EffectType) }),
+		// TODO:
+		// - send unique effect types
+		// - some effects (like silence) may overlap other effects - send only ones actual for FE
 	}
 }
 

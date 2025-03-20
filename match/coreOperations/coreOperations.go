@@ -76,15 +76,13 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 	return nil
 }
 
-func StartTurn(playerState *models.PlayerMatchState) {
-	playerState.SetMaxMana(playerState.GetMaxMana() + 1)
-	playerState.SetMana(playerState.GetMaxMana())
-	DrawCard(playerState)
+func AddEffect(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, effect *models.Effect) {
+	cardInstance.Effects = append(cardInstance.Effects, effect)
 
-	for _, card := range playerState.GetLeftLaneCards() {
-		card.IsActive = true
-	}
-	for _, card := range playerState.GetRightLaneCards() {
-		card.IsActive = true
-	}
+	playerState.SendEvent(enums.BackendEventCardInstancesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
+
+	// to force lanes redraw
+	playerState.SendEvent(enums.BackendEventLanesChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
