@@ -19,21 +19,21 @@ func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanc
 		return
 	}
 
-	cardInstance, _, err := match.GetCardInstanceFromHand(playerState, cardInstanceID)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+	cardInstance, _, exists := playerState.GetCardInstanceFromHand(cardInstanceID)
+	if !exists {
+		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present in a hand", playerID, cardInstanceID))
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 
 	isTargetCardFromOpponent := true
-	targetCardInstance, targetLaneID, _, err := match.GetCardInstanceFromLanes(opponentState, targetCardInstanceID)
-	if err != nil {
+	targetCardInstance, targetLane, _, exists := opponentState.GetCardInstanceFromLanes(targetCardInstanceID)
+	if !exists {
 		isTargetCardFromOpponent = false
-		targetCardInstance, targetLaneID, _, err = match.GetCardInstanceFromLanes(playerState, targetCardInstanceID)
-		if err != nil {
-			fmt.Printf("[%d]: %s", playerID, err)
+		targetCardInstance, targetLane, _, exists = playerState.GetCardInstanceFromLanes(targetCardInstanceID)
+		if !exists {
+			fmt.Printf("[%d]: card instance with id '%s' is not present", playerID, targetCardInstanceID)
 			playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 			opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 			return
@@ -47,7 +47,7 @@ func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanc
 		return
 	}
 
-	err = operations.PlayActionCard(playerState, opponentState, cardInstance, targetCardInstance, isTargetCardFromOpponent, &targetLaneID)
+	err = operations.PlayActionCard(playerState, opponentState, cardInstance, targetCardInstance, isTargetCardFromOpponent, targetLane)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

@@ -161,13 +161,10 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.
 		0,
 		leftDeck,
 		hand,
-		[]*models.CardInstance{},
-		[]*models.CardInstance{},
-		[]*models.CardInstance{},
 		conn,
 	)
 
-	return &playerState, nil
+	return playerState, nil
 }
 
 func selectRandomPlayer(player0ID int, player1ID int) int {

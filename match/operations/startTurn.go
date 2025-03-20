@@ -18,13 +18,23 @@ func startTurnCheck() error {
 func startTurn(playerState *models.PlayerMatchState, matchState *models.Match) {
 	coreOperations.StartTurn(playerState)
 
-	for _, card := range playerState.GetAllLaneCards() {
+	effectsWereUpdated := false
+	for _, card := range playerState.GetAllLaneCardInstances() {
 		if card.IsShackled() {
+			originalLen := len(card.Effects)
 			card.Effects = slices.DeleteFunc(card.Effects, func(eff *models.Effect) bool {
 				return eff.EffectType == enums.EffectTypeShackled && matchState.TurnID-eff.StartTurnID > common.SHACKLE_TURNS_TO_SKIP
 			})
+			effectsWereUpdated = effectsWereUpdated || originalLen != len(card.Effects)
 		}
 		card.IsActive = !card.IsShackled()
+	}
+
+	if effectsWereUpdated {
+		playerState.SendEvent(enums.BackendEventCardInstancesChanged)
+		playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
+		playerState.SendEvent(enums.BackendEventLanesChanged)
+		playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 	}
 }
 

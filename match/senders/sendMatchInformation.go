@@ -7,7 +7,6 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -17,18 +16,9 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
 
-	var playerID = playerState.PlayerID
-	opponentID, opponentExists, err := match.GetOpponentID(matchState, playerID)
-	if err != nil {
-		return err
-	}
-
-	var playerIDs []int
-	if opponentExists {
-		playerIDs = []int{playerID, opponentID}
-	} else {
-		playerIDs = []int{playerID}
-	}
+	playerID := playerState.PlayerID
+	opponentID := playerState.OpponentState.PlayerID
+	playerIDs := []int{playerID, opponentID}
 	players, err := queries.GetPlayersByIDs(playerIDs)
 	if err != nil {
 		return err
@@ -39,11 +29,9 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 		return fmt.Errorf("player with id '%d' is not found", playerID)
 	}
 	var opponent *dbModels.Player
-	if opponentExists {
-		opponent, exists = players[opponentID]
-		if !exists {
-			return fmt.Errorf("player with id '%d' is not found", opponentID)
-		}
+	opponent, exists = players[opponentID]
+	if !exists {
+		return fmt.Errorf("player with id '%d' is not found", opponentID)
 	}
 
 	var dto = dtos.MatchInformationDTO{
@@ -53,16 +41,12 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 			AvatarName: player.AvatarName,
 			State:      byte(enums.PlayerStateInMatch),
 		},
-	}
-	if opponentExists {
-		dto.Opponent = &dtos.PlayerInformationDTO{
+		Opponent: &dtos.PlayerInformationDTO{
 			ID:         opponentID,
 			Name:       opponent.DisplayName,
 			AvatarName: opponent.AvatarName,
 			State:      byte(enums.PlayerStateInMatch),
-		}
-	} else {
-		dto.Opponent = nil
+		},
 	}
 
 	var json = map[string]interface{}{

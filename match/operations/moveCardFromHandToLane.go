@@ -7,14 +7,13 @@ import (
 
 	"github.com/jental/freetesl-server/common"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/match/interceptors"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 // TODO: implement with inteface after signature becomes clear
-func moveCardFromHandToLaneFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane) error {
+func moveCardFromHandToLaneFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane) error {
 	if !cardInstance.IsActive {
 		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
@@ -28,7 +27,7 @@ func moveCardFromHandToLaneFaceCheck(playerState *models.PlayerMatchState, cardI
 		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, currentMana)
 	}
 
-	if len(playerState.GetLaneCards(laneID)) >= common.MAX_LANE_CARDS {
+	if lane.CountCardInstances() >= common.MAX_LANE_CARDS {
 		return errors.New("lane is already full")
 	}
 
@@ -36,16 +35,18 @@ func moveCardFromHandToLaneFaceCheck(playerState *models.PlayerMatchState, cardI
 }
 
 // logic itself
-func moveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID enums.Lane) {
-	coreOperations.PlaceCardToLane(playerState, cardInstance, laneID)
-	cardInstance.IsActive = false
+func moveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) {
+	lane.AddCardInstance(cardInstance)
 	playerState.SetHand(slices.Delete(playerState.GetHand(), cardInHandIdx, cardInHandIdx+1))
+
+	cardInstance.IsActive = false
+
 	var currentMana = playerState.GetMana()
 	playerState.SetMana(currentMana - cardInstance.Cost)
 }
 
-func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, laneID enums.Lane) error {
-	err := moveCardFromHandToLaneFaceCheck(playerState, cardInstance, laneID)
+func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) error {
+	err := moveCardFromHandToLaneFaceCheck(playerState, cardInstance, lane)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *
 		cardInstance.Card.ID,
 		cardInstance.CardInstanceID,
 		nil,
-		&laneID,
+		lane,
 		nil,
 	)
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointMoveCardFromHandToLaneBefore, &interceptorContext)
@@ -65,7 +66,7 @@ func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *
 		return err
 	}
 
-	moveCardFromHandToLane(playerState, cardInstance, cardInHandIdx, laneID)
+	moveCardFromHandToLane(playerState, cardInstance, cardInHandIdx, lane)
 
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointMoveCardFromHandToLaneAfter, &interceptorContext)
 	if err != nil {

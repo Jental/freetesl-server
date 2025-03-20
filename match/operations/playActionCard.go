@@ -42,7 +42,7 @@ func PlayActionCard(
 	cardInstance *models.CardInstance,
 	targetCardInstance *models.CardInstance,
 	isTargetCardFromOpponent bool,
-	targetLaneID *enums.Lane,
+	targetLane *models.Lane,
 ) error {
 	err := playActionCardCheck(playerState, cardInstance)
 	if err != nil {
@@ -62,7 +62,7 @@ func PlayActionCard(
 		cardInstance.Card.ID,
 		cardInstance.CardInstanceID,
 		nil,
-		targetLaneID,
+		targetLane,
 		targetCardInstance,
 	)
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointCardPlay, &interceptorContext)

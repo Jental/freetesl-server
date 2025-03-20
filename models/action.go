@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/jental/freetesl-server/models/enums"
-)
-
 type ActionContext struct {
 	PlayerState        *PlayerMatchState
 	OpponentState      *PlayerMatchState
@@ -11,7 +7,7 @@ type ActionContext struct {
 	ParametersValues   *string
 	TargetPlayerState  *PlayerMatchState // to be able to modify it's hand or lane cards
 	TargetCardInstance *CardInstance
-	TargetLaneID       *enums.Lane
+	TargetLane         *Lane
 }
 
 type Action interface {
@@ -25,7 +21,7 @@ func NewActionContext(
 	parametersValues *string,
 	targetPlayerState *PlayerMatchState,
 	targetCardInstance *CardInstance,
-	targetLaneID *enums.Lane,
+	targetLane *Lane,
 ) ActionContext {
 	return ActionContext{
 		PlayerState:        playerState,
@@ -34,6 +30,6 @@ func NewActionContext(
 		ParametersValues:   parametersValues,
 		TargetPlayerState:  targetPlayerState,
 		TargetCardInstance: targetCardInstance,
-		TargetLaneID:       targetLaneID,
+		TargetLane:         targetLane,
 	}
 }

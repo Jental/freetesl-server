@@ -23,7 +23,7 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		if err != nil {
 			return err
 		}
-		laneID := enums.Lane(dto.LaneID)
+		laneID := enums.LanePosition(dto.LaneID)
 		go MoveCardToLane(playerID, cardInstanceID, laneID)
 	case "hitFace":
 		var dto dtos.HitFaceDTO

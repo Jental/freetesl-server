@@ -10,11 +10,11 @@ import (
 type GuardInterceptor struct{}
 
 func (ic GuardInterceptor) Execute(context *models.InterceptorContext) error {
-	if context.SourceLaneID == nil {
+	if context.SourceLane == nil {
 		return fmt.Errorf("[%d]: GuardInterceptor: no lane id specified", context.PlayerState.PlayerID)
 	}
 
-	opponentLaneCards := context.OpponentState.GetLaneCards(*context.SourceLaneID)
+	opponentLaneCards := context.OpponentState.GetLaneCards(context.SourceLane.Position)
 
 	opponentGuardPresent := false
 OuterLoop:

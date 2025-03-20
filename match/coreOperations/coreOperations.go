@@ -30,14 +30,6 @@ func SwitchTurn(matchState *models.Match) {
 	matchState.Player1State.Value.SendEvent(enums.BackendEventSwitchTurn)
 }
 
-func PlaceCardToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane) {
-	if laneID == enums.LaneLeft {
-		playerState.SetLeftLaneCards(append(playerState.GetLeftLaneCards(), cardInstance))
-	} else if laneID == enums.LaneRight {
-		playerState.SetRightLaneCards(append(playerState.GetRightLaneCards(), cardInstance))
-	}
-}
-
 func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	var updatedHealth = playerState.GetHealth() - amount
 	playerState.SetHealth(updatedHealth)
@@ -59,11 +51,11 @@ func IncreasePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	playerState.SetHealth(updatedHealth)
 }
 
-func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane, amount int) error {
+func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane, amount int) {
 	cardInstance.Health = cardInstance.Health - amount
 
 	if cardInstance.Health <= 0 {
-		DiscardCardFromLane(playerState, cardInstance, laneID)
+		DiscardCardFromLane(playerState, cardInstance, lane)
 	}
 
 	playerState.SendEvent(enums.BackendEventCardInstancesChanged)
@@ -72,8 +64,6 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 	// to force lanes redraw
 	playerState.SendEvent(enums.BackendEventLanesChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
-
-	return nil
 }
 
 func AddEffect(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, effect *models.Effect) {

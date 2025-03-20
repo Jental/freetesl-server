@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"github.com/jental/freetesl-server/models/enums"
 )
 
 type InterceptorContext struct {
@@ -11,8 +10,8 @@ type InterceptorContext struct {
 	TargetPlayerState  *PlayerMatchState
 	CardID             int
 	CardInstanceID     uuid.UUID
-	SourceLaneID       *enums.Lane   // pointer - to make nullable
-	TargetLaneID       *enums.Lane   // pointer - to make nullable
+	SourceLane         *Lane         // pointer - to make nullable
+	TargetLane         *Lane         // pointer - to make nullable
 	TargetCardInstance *CardInstance // pointer - to make nullable
 }
 
@@ -22,8 +21,8 @@ func NewInterceptorContext(
 	targetPlayerState *PlayerMatchState,
 	cardID int,
 	cardInstanceID uuid.UUID,
-	sourceLaneID *enums.Lane,
-	targetLaneID *enums.Lane,
+	sourceLane *Lane,
+	targetLane *Lane,
 	targetCardInstance *CardInstance,
 ) InterceptorContext {
 	return InterceptorContext{
@@ -31,9 +30,9 @@ func NewInterceptorContext(
 		OpponentState:      opponentState,
 		CardID:             cardID,
 		CardInstanceID:     cardInstanceID,
-		SourceLaneID:       sourceLaneID,
+		SourceLane:         sourceLane,
 		TargetPlayerState:  targetPlayerState,
-		TargetLaneID:       targetLaneID,
+		TargetLane:         targetLane,
 		TargetCardInstance: targetCardInstance,
 	}
 }

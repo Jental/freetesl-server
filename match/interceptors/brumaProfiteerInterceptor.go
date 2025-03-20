@@ -11,7 +11,7 @@ import (
 type BrumaProfiteerInterceptor struct{}
 
 func (ic BrumaProfiteerInterceptor) Execute(context *models.InterceptorContext) error {
-	laneCards := context.PlayerState.GetAllLaneCards()
+	laneCards := context.PlayerState.GetAllLaneCardInstances()
 
 	cardIsPresent := false
 	for _, ocard := range laneCards {

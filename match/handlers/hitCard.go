@@ -12,46 +12,45 @@ import (
 func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid.UUID) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+		fmt.Println(fmt.Errorf("[%d]: %s", playerID, err))
 		return
 	}
 
-	cardInstance, laneID, _, err := match.GetCardInstanceFromLanes(playerState, cardInstanceID)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+	cardInstance, lane, _, exists := playerState.GetCardInstanceFromLanes(cardInstanceID)
+	if !exists {
+		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present on lanes", playerState.PlayerID, cardInstanceID))
 		return
 	}
 
-	opponentCardInstance, opponentLaneID, _, err := match.GetCardInstanceFromLanes(opponentState, opponentCardInstanceID)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+	opponentCardInstance, opponentLane, _, exists := opponentState.GetCardInstanceFromLanes(opponentCardInstanceID)
+	if !exists {
+		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present on opponent lanes", playerState.PlayerID, opponentCardInstanceID))
+		playerState.SendEvent(enums.BackendEventLanesChanged) // to reset FE state
+		opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 		return
 	}
 
 	if !cardInstance.IsActive {
 		fmt.Println(fmt.Errorf("[%d]: card with id '%s' is not active", playerID, cardInstanceID.String()))
+		playerState.SendEvent(enums.BackendEventLanesChanged) // to reset FE state
+		opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 		return
 	}
 
-	if laneID != opponentLaneID {
+	if lane.Position != opponentLane.Position {
 		fmt.Println(fmt.Errorf("[%d]: cards are on different lanes", playerID))
+		playerState.SendEvent(enums.BackendEventLanesChanged) // to reset FE state
+		opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 		return
 	}
 
-	err = coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLaneID, cardInstance.Power)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
-		return
-	}
-
-	err = coreOperations.ReduceCardHealth(playerState, cardInstance, laneID, opponentCardInstance.Power)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
-		return
-	}
+	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.Power)
+	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.Power)
 
 	cardInstance.IsActive = false
 
 	playerState.SendEvent(enums.BackendEventLanesChanged)
+	playerState.SendEvent(enums.BackendEventOpponentLanesChanged)
 	opponentState.SendEvent(enums.BackendEventLanesChanged)
+	opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }

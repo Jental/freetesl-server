@@ -16,7 +16,7 @@ func (action DealDamageToCreatureAction) Execute(context *models.ActionContext) 
 		return fmt.Errorf("[%d]: DealDamageToCreatureAction: no CardID specified", context.PlayerState.PlayerID)
 	}
 
-	if context.TargetLaneID == nil {
+	if context.TargetLane == nil {
 		return fmt.Errorf("[%d]: DealDamageToCreatureAction: no TargetLaneID specified", context.PlayerState.PlayerID)
 	}
 
@@ -31,5 +31,7 @@ func (action DealDamageToCreatureAction) Execute(context *models.ActionContext) 
 
 	log.Printf("[%d]: DealDamageToCreatureAction; cardID: '%d'; parameters: '%s'", context.PlayerState.PlayerID, *context.CardID, *context.ParametersValues)
 
-	return coreOperations.ReduceCardHealth(context.TargetPlayerState, context.TargetCardInstance, *context.TargetLaneID, damage)
+	coreOperations.ReduceCardHealth(context.TargetPlayerState, context.TargetCardInstance, context.TargetLane, damage)
+
+	return nil
 }

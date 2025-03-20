@@ -2,23 +2,25 @@ package models
 
 import (
 	"log"
+	"slices"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 type PlayerMatchState struct {
-	PlayerID       int
-	deck           []*CardInstance
-	hand           []*CardInstance
-	discardPile    []*CardInstance
-	health         int
-	runes          uint8
-	mana           int
-	maxMana        int
-	leftLaneCards  []*CardInstance
-	rightLaneCards []*CardInstance
+	PlayerID    int
+	deck        []*CardInstance
+	hand        []*CardInstance
+	discardPile []*CardInstance
+	health      int
+	runes       uint8
+	mana        int
+	maxMana     int
+	leftLane    *Lane
+	rightLane   *Lane
 
 	OpponentState           *PlayerMatchState
 	MatchState              *Match
@@ -36,22 +38,21 @@ func NewPlayerMatchState(
 	maxMana int,
 	deck []*CardInstance,
 	hand []*CardInstance,
-	discardPile []*CardInstance,
-	leftLaneCards []*CardInstance,
-	rightLaneCards []*CardInstance,
 	connection *websocket.Conn,
-) PlayerMatchState {
-	return PlayerMatchState{
-		PlayerID:       playerID,
-		deck:           deck,
-		hand:           hand,
-		leftLaneCards:  leftLaneCards,
-		rightLaneCards: rightLaneCards,
-		discardPile:    discardPile,
-		health:         health,
-		runes:          runes,
-		mana:           mana,
-		maxMana:        maxMana,
+) *PlayerMatchState {
+	leftLane := NewLane(enums.LanePositionLeft, enums.LaneTypeNormal)
+	rightLane := NewLane(enums.LanePositionRight, enums.LaneTypeCover)
+	playerState := PlayerMatchState{
+		PlayerID:    playerID,
+		deck:        deck,
+		hand:        hand,
+		leftLane:    leftLane,
+		rightLane:   rightLane,
+		discardPile: make([]*CardInstance, 0),
+		health:      health,
+		runes:       runes,
+		mana:        mana,
+		maxMana:     maxMana,
 
 		OpponentState:           nil,
 		MatchState:              nil,
@@ -59,10 +60,12 @@ func NewPlayerMatchState(
 		PartiallyParsedMessages: make(chan PartiallyParsedMessage, 1),
 		Events:                  make(chan enums.BackendEventType, 10),
 	}
+	leftLane.playerState = &playerState
+	rightLane.playerState = &playerState
+	return &playerState
 }
 
 func (playerState *PlayerMatchState) SendEvent(event enums.BackendEventType) {
-	// TODO: use it everywhere instead of sending to Events channel
 	if playerState != nil && playerState.Connection != nil {
 		playerState.Events <- event
 	} else {
@@ -95,35 +98,34 @@ func (playerState *PlayerMatchState) SetDiscardPile(discardPile []*CardInstance)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentDiscardPileChanged)
 }
 
-func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstance {
-	return playerState.leftLaneCards
-}
-func (playerState *PlayerMatchState) SetLeftLaneCards(leftLaneCards []*CardInstance) {
-	playerState.leftLaneCards = leftLaneCards
+func (playerState *PlayerMatchState) GetLane(laneID enums.LanePosition) *Lane {
+	switch laneID {
+	case enums.LanePositionLeft:
+		return playerState.leftLane
+	case enums.LanePositionRight:
+		return playerState.rightLane
+	}
 
-	playerState.SendEvent(enums.BackendEventLanesChanged)
-	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
+	return nil
+}
+
+func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstance {
+	return playerState.leftLane.cardInstances
 }
 
 func (playerState *PlayerMatchState) GetRightLaneCards() []*CardInstance {
-	return playerState.rightLaneCards
-}
-func (playerState *PlayerMatchState) SetRightLaneCards(rightLaneCards []*CardInstance) {
-	playerState.rightLaneCards = rightLaneCards
-
-	playerState.SendEvent(enums.BackendEventLanesChanged)
-	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
+	return playerState.rightLane.cardInstances
 }
 
-func (playerState *PlayerMatchState) GetLaneCards(laneID enums.Lane) []*CardInstance {
-	if laneID == enums.LaneRight {
-		return playerState.GetRightLaneCards()
+func (playerState *PlayerMatchState) GetLaneCards(laneID enums.LanePosition) []*CardInstance {
+	if laneID == enums.LanePositionLeft {
+		return playerState.leftLane.cardInstances
 	} else {
-		return playerState.GetLeftLaneCards()
+		return playerState.rightLane.cardInstances
 	}
 }
 
-func (playerState *PlayerMatchState) GetAllLaneCards() []*CardInstance {
+func (playerState *PlayerMatchState) GetAllLaneCardInstances() []*CardInstance {
 	var result []*CardInstance
 	result = append(result, playerState.GetLeftLaneCards()...)
 	result = append(result, playerState.GetRightLaneCards()...)
@@ -160,4 +162,27 @@ func (playerState *PlayerMatchState) SetMaxMana(maxMana int) {
 
 	playerState.SendEvent(enums.BackendEventManaChanged) // decided to reuse event
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentManaChanged)
+}
+
+func (playerState *PlayerMatchState) GetCardInstanceFromHand(cardInstanceID uuid.UUID) (*CardInstance, int, bool) {
+	var idx = slices.IndexFunc(playerState.GetHand(), func(el *CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+	if idx < 0 {
+		return nil, -1, false
+	} else {
+		return playerState.GetHand()[idx], idx, true
+	}
+}
+
+func (playerState *PlayerMatchState) GetCardInstanceFromLanes(cardInstanceID uuid.UUID) (*CardInstance, *Lane, int, bool) {
+	cardInstance, idx, exists := playerState.leftLane.GetCardInstance(cardInstanceID)
+	if exists {
+		return cardInstance, playerState.leftLane, idx, true
+	}
+
+	cardInstance, idx, exists = playerState.rightLane.GetCardInstance(cardInstanceID)
+	if exists {
+		return cardInstance, playerState.rightLane, idx, true
+	}
+
+	return nil, nil, -1, false
 }

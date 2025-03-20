@@ -23,7 +23,7 @@ func (ic ActionCallInterceptor) Execute(context *models.InterceptorContext) erro
 		ic.ActionParametersValues,
 		context.TargetPlayerState,
 		context.TargetCardInstance,
-		context.TargetLaneID,
+		context.TargetLane,
 	)
 	return ExecuteAction(ic.ActionID, &actionContext)
 }

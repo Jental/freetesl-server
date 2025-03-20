@@ -24,7 +24,7 @@ func hitFace(opponentState *models.PlayerMatchState, cardInstance *models.CardIn
 	cardInstance.IsActive = false
 }
 
-func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerMatchState, cardInstance *models.CardInstance, laneID enums.Lane) error {
+func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane) error {
 	err := hitFaceCheck(playerState, cardInstance)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerM
 		opponentState,
 		cardInstance.Card.ID,
 		cardInstance.CardInstanceID,
-		&laneID,
+		lane,
 		nil,
 		nil,
 	)

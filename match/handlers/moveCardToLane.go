@@ -9,7 +9,7 @@ import (
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.Lane) {
+func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.LanePosition) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
@@ -18,15 +18,17 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.Lane) {
 		return
 	}
 
-	cardInstance, idx, err := match.GetCardInstanceFromHand(playerState, cardInstanceID)
-	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+	cardInstance, idx, exists := playerState.GetCardInstanceFromHand(cardInstanceID)
+	if !exists {
+		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present in a hand", playerID, cardInstanceID))
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 
-	err = operations.MoveCardFromHandToLane(playerState, cardInstance, idx, laneID)
+	lane := playerState.GetLane(laneID)
+
+	err = operations.MoveCardFromHandToLane(playerState, cardInstance, idx, lane)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

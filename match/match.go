@@ -3,7 +3,6 @@ package match
 import (
 	"fmt"
 	"log"
-	"slices"
 	"sync"
 	"time"
 
@@ -105,63 +104,4 @@ func GetCurrentMatchState(playerID int) (*models.Match, *models.PlayerMatchState
 	}
 
 	return match, playerState, opponentState, nil
-}
-
-func GetOpponent(match *models.Match, playerID int) (*models.PlayerMatchState, bool, error) {
-	if match.Player0State.HasValue && match.Player1State.HasValue {
-		if match.Player0State.Value.PlayerID == playerID {
-			return match.Player1State.Value, true, nil
-		} else if match.Player1State.Value.PlayerID == playerID {
-			return match.Player0State.Value, true, nil
-		} else {
-			return nil, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
-		}
-	} else if match.Player0State.HasValue {
-		if match.Player0State.Value.PlayerID == playerID {
-			return nil, false, nil
-		} else {
-			return nil, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
-		}
-	} else if match.Player1State.HasValue {
-		if match.Player1State.Value.PlayerID == playerID {
-			return nil, false, nil
-		} else {
-			return nil, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
-		}
-	} else {
-		return nil, false, fmt.Errorf("player with id '%d' is not a part of a match", playerID)
-	}
-}
-
-func GetOpponentID(match *models.Match, playerID int) (int, bool, error) {
-	var opponent, exist, err = GetOpponent(match, playerID)
-	if err != nil {
-		return -1, false, err
-	}
-	if !exist {
-		return -1, false, nil
-	}
-	return opponent.PlayerID, true, nil
-}
-
-func GetCardInstanceFromHand(playerState *models.PlayerMatchState, cardInstanceID uuid.UUID) (*models.CardInstance, int, error) {
-	var idx = slices.IndexFunc(playerState.GetHand(), func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
-	if idx < 0 {
-		return nil, -1, fmt.Errorf("card instance with id '%s' is not present in a hand of a player '%d'", cardInstanceID, playerState.PlayerID)
-	}
-	return playerState.GetHand()[idx], idx, nil
-}
-
-func GetCardInstanceFromLanes(playerState *models.PlayerMatchState, cardInstanceID uuid.UUID) (*models.CardInstance, enums.Lane, int, error) {
-	var idx = slices.IndexFunc(playerState.GetLeftLaneCards(), func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
-	if idx >= 0 {
-		return playerState.GetLeftLaneCards()[idx], enums.LaneLeft, idx, nil
-	}
-
-	idx = slices.IndexFunc(playerState.GetRightLaneCards(), func(el *models.CardInstance) bool { return el.CardInstanceID == cardInstanceID })
-	if idx >= 0 {
-		return playerState.GetRightLaneCards()[idx], enums.LaneRight, idx, nil
-	}
-
-	return nil, 0, -1, fmt.Errorf("card instance with id '%s' is not present on lanes of a player '%d'", cardInstanceID, playerState.PlayerID)
 }
