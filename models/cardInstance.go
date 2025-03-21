@@ -20,7 +20,7 @@ type CardInstance struct {
 	Effects        []*Effect
 }
 
-func (cardInstance *CardInstance) IsShackled() bool {
-	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == enums.EffectTypeShackled })
+func (cardInstance *CardInstance) HasEffect(effectType enums.EffectType) bool {
+	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == effectType })
 	return idx >= 0
 }

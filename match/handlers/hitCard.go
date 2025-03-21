@@ -44,6 +44,15 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
+	if opponentCardInstance.HasEffect(enums.EffectTypeCover) {
+		fmt.Println(fmt.Errorf("[%d]: opponent card in cover", playerID))
+		playerState.SendEvent(enums.BackendEventOpponentCardInstancesChanged) // to reset FE state
+		opponentState.SendEvent(enums.BackendEventCardInstancesChanged)
+		playerState.SendEvent(enums.BackendEventOpponentLanesChanged) // to reset FE state
+		opponentState.SendEvent(enums.BackendEventLanesChanged)
+		return
+	}
+
 	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.Power)
 	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.Power)
 

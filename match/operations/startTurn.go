@@ -20,14 +20,22 @@ func startTurn(playerState *models.PlayerMatchState, matchState *models.Match) {
 
 	effectsWereUpdated := false
 	for _, card := range playerState.GetAllLaneCardInstances() {
-		if card.IsShackled() {
+		if card.HasEffect(enums.EffectTypeShackled) {
 			originalLen := len(card.Effects)
 			card.Effects = slices.DeleteFunc(card.Effects, func(eff *models.Effect) bool {
 				return eff.EffectType == enums.EffectTypeShackled && matchState.TurnID-eff.StartTurnID > common.SHACKLE_TURNS_TO_SKIP
 			})
 			effectsWereUpdated = effectsWereUpdated || originalLen != len(card.Effects)
 		}
-		card.IsActive = !card.IsShackled()
+		if card.HasEffect(enums.EffectTypeCover) {
+			originalLen := len(card.Effects)
+			card.Effects = slices.DeleteFunc(card.Effects, func(eff *models.Effect) bool {
+				return eff.EffectType == enums.EffectTypeCover
+			})
+			effectsWereUpdated = effectsWereUpdated || originalLen != len(card.Effects)
+		}
+
+		card.IsActive = !card.HasEffect(enums.EffectTypeShackled)
 	}
 
 	if effectsWereUpdated {

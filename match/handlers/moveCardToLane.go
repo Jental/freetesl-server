@@ -10,7 +10,7 @@ import (
 )
 
 func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.LanePosition) {
-	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
+	matchState, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
@@ -28,7 +28,7 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.LanePos
 
 	lane := playerState.GetLane(laneID)
 
-	err = operations.MoveCardFromHandToLane(playerState, cardInstance, idx, lane)
+	err = operations.MoveCardFromHandToLane(playerState, matchState, cardInstance, idx, lane)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

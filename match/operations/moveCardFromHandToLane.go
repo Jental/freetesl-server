@@ -35,17 +35,30 @@ func moveCardFromHandToLaneFaceCheck(playerState *models.PlayerMatchState, cardI
 }
 
 // logic itself
-func moveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) {
+func moveCardFromHandToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) {
 	lane.AddCardInstance(cardInstance)
 	playerState.SetHand(slices.Delete(playerState.GetHand(), cardInHandIdx, cardInHandIdx+1))
 
+	effectsWereUpdated := false
+
 	cardInstance.IsActive = false
+	if lane.Type == enums.LaneTypeCover {
+		cardInstance.Effects = append(cardInstance.Effects, &models.Effect{EffectType: enums.EffectTypeCover, StartTurnID: matchState.TurnID})
+		effectsWereUpdated = true
+	}
 
 	var currentMana = playerState.GetMana()
 	playerState.SetMana(currentMana - cardInstance.Cost)
+
+	if effectsWereUpdated {
+		playerState.SendEvent(enums.BackendEventCardInstancesChanged)
+		playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
+		playerState.SendEvent(enums.BackendEventLanesChanged)
+		playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
+	}
 }
 
-func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) error {
+func MoveCardFromHandToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) error {
 	err := moveCardFromHandToLaneFaceCheck(playerState, cardInstance, lane)
 	if err != nil {
 		return err
@@ -66,7 +79,7 @@ func MoveCardFromHandToLane(playerState *models.PlayerMatchState, cardInstance *
 		return err
 	}
 
-	moveCardFromHandToLane(playerState, cardInstance, cardInHandIdx, lane)
+	moveCardFromHandToLane(playerState, matchState, cardInstance, cardInHandIdx, lane)
 
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointMoveCardFromHandToLaneAfter, &interceptorContext)
 	if err != nil {
