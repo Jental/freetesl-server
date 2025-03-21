@@ -24,3 +24,8 @@ func (cardInstance *CardInstance) HasEffect(effectType enums.EffectType) bool {
 	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == effectType })
 	return idx >= 0
 }
+
+func (cardInstance *CardInstance) HasKeyword(keyword dbEnums.CardKeyword) bool {
+	idx := slices.Index(cardInstance.Keywords, keyword)
+	return idx >= 0
+}

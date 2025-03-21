@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/jental/freetesl-server/match"
-	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/operations"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -30,37 +31,8 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
-	if !cardInstance.IsActive {
-		fmt.Println(fmt.Errorf("[%d]: card with id '%s' is not active", playerID, cardInstanceID.String()))
-		playerState.SendEvent(enums.BackendEventLanesChanged) // to reset FE state
-		opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
-		return
+	err = operations.HitCard(playerState, opponentState, cardInstance, opponentCardInstance, lane, opponentLane)
+	if err != nil {
+		log.Println(err)
 	}
-
-	if lane.Position != opponentLane.Position {
-		fmt.Println(fmt.Errorf("[%d]: cards are on different lanes", playerID))
-		playerState.SendEvent(enums.BackendEventLanesChanged) // to reset FE state
-		opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
-		return
-	}
-
-	// TODO: maybe it's better to rewrite this method as operation and interceptor point for cover
-	if opponentCardInstance.HasEffect(enums.EffectTypeCover) {
-		fmt.Println(fmt.Errorf("[%d]: opponent card in cover", playerID))
-		playerState.SendEvent(enums.BackendEventOpponentCardInstancesChanged) // to reset FE state
-		opponentState.SendEvent(enums.BackendEventCardInstancesChanged)
-		playerState.SendEvent(enums.BackendEventOpponentLanesChanged) // to reset FE state
-		opponentState.SendEvent(enums.BackendEventLanesChanged)
-		return
-	}
-
-	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.Power)
-	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.Power)
-
-	cardInstance.IsActive = false
-
-	playerState.SendEvent(enums.BackendEventLanesChanged)
-	playerState.SendEvent(enums.BackendEventOpponentLanesChanged)
-	opponentState.SendEvent(enums.BackendEventLanesChanged)
-	opponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }

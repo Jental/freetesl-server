@@ -8,4 +8,6 @@ const (
 	InterceptorPointMoveCardFromHandToLaneAfter  InteceptorPoint = "operations.moveCardFromHandToLane:after"
 	InterceptorPointHitFaceBefore                InteceptorPoint = "operations.hitFace:before"
 	InterceptorPointHitFaceAfter                 InteceptorPoint = "operations.hitFace:after"
+	InterceptorPointHitCardBefore                InteceptorPoint = "operations.hitCard:before"
+	InterceptorPointHitCardAfter                 InteceptorPoint = "operations.hitCard:after"
 )

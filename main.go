@@ -29,7 +29,12 @@ func main() {
 
 	var guardInterceptor models.Interceptor = matchInterceptors.GuardInterceptor{}
 	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitFaceBefore, &guardInterceptor)
+	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitCardBefore, &guardInterceptor)
+	var coverInterceptor models.Interceptor = matchInterceptors.CoverInterceptor{}
+	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitCardBefore, &coverInterceptor)
+
 	matchInterceptors.RegisterAllSpecialCardsInterceptors()
+
 	matchActions.RegisterAllActions()
 	matchActions.RegisterActionsForCards()
 

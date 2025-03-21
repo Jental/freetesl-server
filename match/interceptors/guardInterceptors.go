@@ -10,20 +10,29 @@ import (
 type GuardInterceptor struct{}
 
 func (ic GuardInterceptor) Execute(context *models.InterceptorContext) error {
+	if context.PlayerState == nil {
+		return fmt.Errorf("[%d]: GuardInterceptor: no PlayerState specified", context.PlayerState.PlayerID)
+	}
+	if context.TargetPlayerState == nil {
+		return fmt.Errorf("[%d]: GuardInterceptor: no TargetPlayerState specified", context.PlayerState.PlayerID)
+	}
 	if context.SourceLane == nil {
-		return fmt.Errorf("[%d]: GuardInterceptor: no lane id specified", context.PlayerState.PlayerID)
+		return fmt.Errorf("[%d]: GuardInterceptor: no SourceLane specified", context.PlayerState.PlayerID)
+	}
+
+	if context.TargetCardInstance != nil { // hitCard
+		if context.TargetCardInstance.HasKeyword(dbEnums.CardKeywordGuard) {
+			return nil
+		}
 	}
 
 	opponentLaneCards := context.OpponentState.GetLaneCards(context.SourceLane.Position)
 
 	opponentGuardPresent := false
-OuterLoop:
 	for _, ocard := range opponentLaneCards {
-		for _, kw := range ocard.Card.Keywords {
-			if kw == dbEnums.CardKeywordGuard {
-				opponentGuardPresent = true
-				break OuterLoop
-			}
+		if ocard.HasKeyword(dbEnums.CardKeywordGuard) {
+			opponentGuardPresent = true
+			break
 		}
 	}
 

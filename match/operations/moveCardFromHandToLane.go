@@ -42,7 +42,8 @@ func moveCardFromHandToLane(playerState *models.PlayerMatchState, matchState *mo
 	effectsWereUpdated := false
 
 	cardInstance.IsActive = false
-	if lane.Type == enums.LaneTypeCover {
+	// TODO: maybe do it through interceptor
+	if lane.Type == enums.LaneTypeCover && !cardInstance.HasKeyword(dbEnums.CardKeywordGuard) {
 		cardInstance.Effects = append(cardInstance.Effects, &models.Effect{EffectType: enums.EffectTypeCover, StartTurnID: matchState.TurnID})
 		effectsWereUpdated = true
 	}
