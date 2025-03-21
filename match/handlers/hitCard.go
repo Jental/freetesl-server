@@ -44,6 +44,7 @@ func HitCard(playerID int, cardInstanceID uuid.UUID, opponentCardInstanceID uuid
 		return
 	}
 
+	// TODO: maybe it's better to rewrite this method as operation and interceptor point for cover
 	if opponentCardInstance.HasEffect(enums.EffectTypeCover) {
 		fmt.Println(fmt.Errorf("[%d]: opponent card in cover", playerID))
 		playerState.SendEvent(enums.BackendEventOpponentCardInstancesChanged) // to reset FE state
