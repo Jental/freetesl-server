@@ -1,6 +1,9 @@
 package coreOperations
 
-import "github.com/jental/freetesl-server/models"
+import (
+	"github.com/jental/freetesl-server/common"
+	"github.com/jental/freetesl-server/models"
+)
 
 func StartTurn(playerState *models.PlayerMatchState) {
 	if playerState.PlayerID == playerState.MatchState.PlayerWithFirstTurnID {
@@ -9,5 +12,10 @@ func StartTurn(playerState *models.PlayerMatchState) {
 
 	playerState.SetMaxMana(playerState.GetMaxMana() + 1)
 	playerState.SetMana(playerState.GetMaxMana())
-	DrawCard(playerState)
+
+	if len(playerState.GetHand()) >= common.MAX_HAND_CARDS {
+		DiscardCardFromDeck(playerState)
+	} else {
+		DrawCard(playerState)
+	}
 }
