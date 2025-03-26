@@ -1,7 +1,6 @@
 package coreOperations
 
 import (
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -37,13 +36,6 @@ func ReducePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	var expectedRuneCount uint8 = uint8((updatedHealth - 1) / 5)
 	var runeCount = max(0, min(expectedRuneCount, playerState.GetRunes()))
 	playerState.SetRunes(runeCount)
-
-	// TODO: trigger prophecies
-
-	if updatedHealth <= 0 {
-		// TODO: there'll be an exception with a Vivec card in play later
-		match.EndMatch(playerState.MatchState, playerState.OpponentState.PlayerID)
-	}
 }
 
 func IncreasePlayerHealth(playerState *models.PlayerMatchState, amount int) {

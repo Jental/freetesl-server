@@ -8,8 +8,8 @@ type InterceptorContext struct {
 	PlayerState        *PlayerMatchState
 	OpponentState      *PlayerMatchState
 	TargetPlayerState  *PlayerMatchState
-	CardID             int
-	CardInstanceID     uuid.UUID
+	CardID             *int          // pointer - to make nullable
+	CardInstanceID     *uuid.UUID    // pointer - to make nullable
 	SourceLane         *Lane         // pointer - to make nullable
 	TargetLane         *Lane         // pointer - to make nullable
 	TargetCardInstance *CardInstance // pointer - to make nullable
@@ -19,8 +19,8 @@ func NewInterceptorContext(
 	playerState *PlayerMatchState,
 	opponentState *PlayerMatchState,
 	targetPlayerState *PlayerMatchState,
-	cardID int,
-	cardInstanceID uuid.UUID,
+	cardID *int,
+	cardInstanceID *uuid.UUID,
 	sourceLane *Lane,
 	targetLane *Lane,
 	targetCardInstance *CardInstance,

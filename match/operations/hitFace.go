@@ -3,7 +3,6 @@ package operations
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/match/interceptors"
 	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
@@ -20,7 +19,7 @@ func hitFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.Car
 
 // logic itself
 func hitFace(opponentState *models.PlayerMatchState, cardInstance *models.CardInstance) {
-	coreOperations.ReducePlayerHealth(opponentState, cardInstance.Power)
+	ReducePlayerHealth(opponentState, cardInstance.Power)
 	cardInstance.IsActive = false
 }
 
@@ -34,8 +33,8 @@ func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerM
 		playerState,
 		opponentState,
 		opponentState,
-		cardInstance.Card.ID,
-		cardInstance.CardInstanceID,
+		&cardInstance.Card.ID,
+		&cardInstance.CardInstanceID,
 		lane,
 		nil,
 		nil,
