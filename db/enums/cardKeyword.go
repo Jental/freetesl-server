@@ -12,6 +12,7 @@ const (
 	CardKeywordRally        CardKeyword = 7
 	CardKeywordRegenerate   CardKeyword = 8
 	CardKeywordWard         CardKeyword = 9
+	CardKeywordProphecy     CardKeyword = 10
 )
 
 var CardKeywordName = map[CardKeyword]string{
@@ -24,4 +25,5 @@ var CardKeywordName = map[CardKeyword]string{
 	CardKeywordRally:        "Rally",
 	CardKeywordRegenerate:   "Regenerate",
 	CardKeywordWard:         "Ward",
+	CardKeywordProphecy:     "Prophecy",
 }

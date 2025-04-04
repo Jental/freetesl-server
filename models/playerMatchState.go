@@ -4,9 +4,11 @@ import (
 	"log"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -28,6 +30,9 @@ type PlayerMatchState struct {
 	WebsocketSendMtx        sync.Mutex
 	PartiallyParsedMessages chan PartiallyParsedMessage
 	Events                  chan enums.BackendEventType
+
+	сardInstanceWaitingForAction *CardInstance
+	WaitingForUserActionChan     chan struct{} // TODO: make private and close in Dispose method (to be created)
 }
 
 func NewPlayerMatchState(
@@ -54,11 +59,12 @@ func NewPlayerMatchState(
 		mana:        mana,
 		maxMana:     maxMana,
 
-		OpponentState:           nil,
-		MatchState:              nil,
-		Connection:              connection,
-		PartiallyParsedMessages: make(chan PartiallyParsedMessage, 1),
-		Events:                  make(chan enums.BackendEventType, 10),
+		OpponentState:            nil,
+		MatchState:               nil,
+		Connection:               connection,
+		PartiallyParsedMessages:  make(chan PartiallyParsedMessage, 1),
+		Events:                   make(chan enums.BackendEventType, 10),
+		WaitingForUserActionChan: make(chan struct{}),
 	}
 	leftLane.playerState = &playerState
 	rightLane.playerState = &playerState
@@ -162,6 +168,41 @@ func (playerState *PlayerMatchState) SetMaxMana(maxMana int) {
 
 	playerState.SendEvent(enums.BackendEventManaChanged) // decided to reuse event
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentManaChanged)
+}
+
+func (playerState *PlayerMatchState) GetCardInstanceWaitingForAction() *CardInstance {
+	return playerState.сardInstanceWaitingForAction
+}
+func (playerState *PlayerMatchState) SetCardInstanceWaitingForAction(cardInstance *CardInstance) {
+	playerState.сardInstanceWaitingForAction = cardInstance
+
+	playerState.SendEvent(enums.BackendEventCardWatingForActionChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardWatingForActionChanged)
+}
+func (playerState *PlayerMatchState) WaitForCardInstanceAction(
+	onSuccess func() error,
+	onTimeout func() error,
+) error {
+	var timeoutHappened bool
+	select {
+	case <-playerState.WaitingForUserActionChan:
+		log.Printf("[%d]: WaitForCardInstanceAction: received card instance action completed signal", playerState.PlayerID)
+		timeoutHappened = false
+	case <-time.After(common.USER_ACTION_TIMEOUT * time.Second):
+		log.Printf("[%d]: WaitForCardInstanceAction: user action timeout", playerState.PlayerID)
+		timeoutHappened = true
+	}
+
+	playerState.сardInstanceWaitingForAction = nil
+
+	playerState.SendEvent(enums.BackendEventCardWatingForActionChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardWatingForActionChanged)
+
+	if timeoutHappened {
+		return onTimeout()
+	} else {
+		return onSuccess()
+	}
 }
 
 func (playerState *PlayerMatchState) GetCardInstanceFromHand(cardInstanceID uuid.UUID) (*CardInstance, int, bool) {

@@ -5,16 +5,18 @@ import (
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func DrawCard(playerState *models.PlayerMatchState) {
+func DrawCard(playerState *models.PlayerMatchState) *models.CardInstance {
 	var deck = playerState.GetDeck()
 	if len(deck) == 0 {
-		return // TODO: for now doing nothing, but later next rune should be broken
+		return nil // TODO: for now doing nothing, but later next rune should be broken
 	}
 
 	var drawnCard = deck[0]
 	drawnCard.IsActive = true
 	playerState.SetHand(append(playerState.GetHand(), drawnCard))
 	playerState.SetDeck(deck[1:])
+
+	return drawnCard
 }
 
 func SwitchTurn(matchState *models.Match) {

@@ -33,5 +33,5 @@ func RegisterInterceptor(point enums.InteceptorPoint, interceptor *models.Interc
 
 func RegisterAllSpecialCardsInterceptors() {
 	var brumaProfiteerInterceptor models.Interceptor = BrumaProfiteerInterceptor{}
-	RegisterInterceptor(enums.InterceptorPointMoveCardFromHandToLaneAfter, &brumaProfiteerInterceptor)
+	RegisterInterceptor(enums.InterceptorPointMoveCardToLaneAfter, &brumaProfiteerInterceptor)
 }

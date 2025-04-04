@@ -18,7 +18,7 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.LanePos
 		return
 	}
 
-	cardInstance, idx, exists := playerState.GetCardInstanceFromHand(cardInstanceID)
+	cardInstance, _, exists := playerState.GetCardInstanceFromHand(cardInstanceID)
 	if !exists {
 		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present in a hand", playerID, cardInstanceID))
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
@@ -28,7 +28,7 @@ func MoveCardToLane(playerID int, cardInstanceID uuid.UUID, laneID enums.LanePos
 
 	lane := playerState.GetLane(laneID)
 
-	err = operations.MoveCardFromHandToLane(playerState, matchState, cardInstance, idx, lane)
+	err = operations.MoveCardFromHandToLane(playerState, matchState, cardInstance, lane)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

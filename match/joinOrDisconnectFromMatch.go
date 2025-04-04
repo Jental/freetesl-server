@@ -72,6 +72,7 @@ func cleanupAfterConnectionClose(playerState *models.PlayerMatchState) {
 	playerState.Connection = nil
 	close(playerState.PartiallyParsedMessages)
 	close(playerState.Events)
+	close(playerState.WaitingForUserActionChan)
 	log.Printf("[%d]: cleaning up after disconnect - done", playerState.PlayerID)
 }
 

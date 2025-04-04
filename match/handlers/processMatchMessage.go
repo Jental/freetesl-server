@@ -25,6 +25,11 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		}
 		laneID := enums.LanePosition(dto.LaneID)
 		go MoveCardToLane(playerID, cardInstanceID, laneID)
+	case "drawCardToLane":
+		var dto dtos.DrawCardToLaneRequestDTO
+		mapstructure.Decode(message.Body, &dto)
+		laneID := enums.LanePosition(dto.LaneID)
+		go DrawCardToLane(playerID, laneID)
 	case "hitFace":
 		var dto dtos.HitFaceDTO
 		mapstructure.Decode(message.Body, &dto)
@@ -45,6 +50,8 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 			return err
 		}
 		go HitCard(playerID, cardInstanceID, opponentCardInstanceID)
+	case "drawCard":
+		go DrawCard(playerID)
 	case "applyActionToCard":
 		var dto dtos.ApplyActionToCardDTO
 		mapstructure.Decode(message.Body, &dto)
@@ -59,6 +66,8 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		go ApplyActionToCard(playerID, cardInstanceID, opponentCardInstanceID)
 	case "concede":
 		go Concede(playerID)
+	case "waitedUserActionsCompleted":
+		go WaitedUserActionsCompleted(playerID)
 	}
 
 	return nil

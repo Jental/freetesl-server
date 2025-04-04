@@ -6,3 +6,5 @@ const MAX_HAND_CARDS = 10
 const AUTH_JWT_EXPIRATION_TIME = 86400          // in seconds 86400 = 1 day
 const PLAYER_INACTIVITY_TIMEOUT = /*180*/ 86400 // in seconds
 const SHACKLE_TURNS_TO_SKIP = 1                 // in turns
+const HEALTH_BETWEEN_RUNES = 5
+const USER_ACTION_TIMEOUT = 30 // in seconds

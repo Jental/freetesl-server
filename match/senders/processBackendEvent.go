@@ -22,6 +22,7 @@ func ProcessBackendEvent(playerState *models.PlayerMatchState, event enums.Backe
 		err = SendDeckStateToPlayer(playerState, playerState.MatchState)
 	case enums.BackendEventHealthChanged, enums.BackendEventManaChanged, enums.BackendEventHandChanged, enums.BackendEventLanesChanged, enums.BackendEventMatchStateRefresh,
 		enums.BackendEventOpponentHealthChanged, enums.BackendEventOpponentManaChanged, enums.BackendEventOpponentHandChanged, enums.BackendEventOpponentLanesChanged, enums.BackendEventOpponentMatchStateRefresh,
+		enums.BackendEventCardWatingForActionChanged, enums.BackendEventOpponentCardWatingForActionChanged,
 		enums.BackendEventSwitchTurn:
 		err = SendMatchStateToPlayer(playerState, playerState.MatchState)
 	case enums.BackendEventDiscardPileChanged, enums.BackendEventOpponentDiscardPileChanged:
@@ -37,6 +38,5 @@ func ProcessBackendEvent(playerState *models.PlayerMatchState, event enums.Backe
 	case enums.BackendEventMatchEnd:
 		err = SendMatchEndToPlayer(playerState, playerState.MatchState)
 	}
-
 	return err
 }

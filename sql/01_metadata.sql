@@ -118,4 +118,5 @@ VALUES (1, 'breakthrough'),
        (6, 'mobilize'),
        (7, 'rally'),
        (8, 'regenerate'),
-       (9, 'ward');
+       (9, 'ward'),
+       (10, 'prophecy');

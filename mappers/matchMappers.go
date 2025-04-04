@@ -32,7 +32,7 @@ func MapToCardInstanceStateDTO(model *models.CardInstance) dtos.CardInstanceStat
 }
 
 func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchStateDTO {
-	return dtos.PlayerMatchStateDTO{
+	result := dtos.PlayerMatchStateDTO{
 		Health:  model.GetHealth(),
 		Runes:   model.GetRunes(),
 		Mana:    model.GetMana(),
@@ -47,6 +47,13 @@ func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchSt
 			return MapToCardInstanceStateDTO(item)
 		}),
 	}
+
+	cardInstanceForAction := model.GetCardInstanceWaitingForAction()
+	if cardInstanceForAction != nil {
+		result.CardInstanceWaitingForAction = &cardInstanceForAction.CardInstanceID
+	}
+
+	return result
 }
 
 func MapToMatchStateDTO(model *models.Match, playerID int) (*dtos.MatchStateDTO, error) {
