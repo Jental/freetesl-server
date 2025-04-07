@@ -53,7 +53,7 @@ func reducePlayerHealth(
 		runeIsBroken := playerState.GetRunes() > 0 && amountLeft >= playerState.GetHealth()-nextRuneHealth
 		var healthToSubstract int
 		if runeIsBroken {
-			healthToSubstract = playerState.GetHealth() - nextRuneHealth + 1 // +1 because we will will substract additional 1 health when we handle rune break
+			healthToSubstract = playerState.GetHealth() - nextRuneHealth - 1 // -1 because we will will substract additional 1 health when we handle rune break
 		} else {
 			healthToSubstract = amountLeft
 		}
