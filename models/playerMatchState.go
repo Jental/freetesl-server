@@ -31,7 +31,7 @@ type PlayerMatchState struct {
 	PartiallyParsedMessages chan PartiallyParsedMessage
 	Events                  chan enums.BackendEventType
 
-	сardInstanceWaitingForAction *CardInstance
+	сardInstanceWaitingForAction *CardInstance // to show on FE something prophecy-action-select-like, later there'll be selects for 3-cards, but that'll be another field
 	WaitingForUserActionChan     chan struct{} // TODO: make private and close in Dispose method (to be created)
 }
 

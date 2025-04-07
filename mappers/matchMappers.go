@@ -74,9 +74,10 @@ func MapToMatchStateDTO(model *models.Match, playerID int) (*dtos.MatchStateDTO,
 	}
 
 	return &dtos.MatchStateDTO{
-		Player:   MapToPlayerMatchStateDTO(playerState),
-		Opponent: MapToPlayerMatchStateDTO(opponentState),
-		OwnTurn:  model.PlayerWithTurnID == playerID,
+		Player:                      MapToPlayerMatchStateDTO(playerState),
+		Opponent:                    MapToPlayerMatchStateDTO(opponentState),
+		OwnTurn:                     model.PlayerWithTurnID == playerID,
+		WaitingForOtherPlayerAction: opponentState.GetCardInstanceWaitingForAction() != nil,
 	}, nil
 }
 
