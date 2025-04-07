@@ -35,7 +35,7 @@ func moveCardFromDeckToLane(playerState *models.PlayerMatchState, matchState *mo
 	deck := playerState.GetDeck()
 	cardInstance := deck[0] // check has been done in the ...Check method
 
-	moveCardToLane(playerState, matchState, cardInstance, lane)
+	MoveCardToLane(playerState, matchState, cardInstance, lane)
 	playerState.SetDeck(deck[1:])
 }
 

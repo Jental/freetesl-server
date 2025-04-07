@@ -48,7 +48,7 @@ func moveCardToLane(playerState *models.PlayerMatchState, matchState *models.Mat
 	}
 }
 
-func MoveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, cardInHandIdx int, lane *models.Lane) error {
+func MoveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, lane *models.Lane) error {
 	err := moveCardToLaneCheck(playerState, cardInstance, lane)
 	if err != nil {
 		return err

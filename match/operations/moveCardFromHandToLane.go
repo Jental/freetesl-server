@@ -24,7 +24,7 @@ func moveCardFromHandToLaneCheck(playerState *models.PlayerMatchState, cardInsta
 
 // logic itself
 func moveCardFromHandToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, lane *models.Lane) {
-	moveCardToLane(playerState, matchState, cardInstance, lane)
+	MoveCardToLane(playerState, matchState, cardInstance, lane)
 
 	cardInHandIdx := slices.Index(playerState.GetHand(), cardInstance)
 	playerState.SetHand(slices.Delete(playerState.GetHand(), cardInHandIdx, cardInHandIdx+1))
