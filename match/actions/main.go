@@ -31,6 +31,9 @@ func RegisterAllActions() {
 
 	var shackleAction models.Action = ShackleAction{}
 	actions[enums.ActionShackle] = &shackleAction
+
+	var healAction models.Action = HealAction{}
+	actions[enums.ActionHeal] = &healAction
 }
 
 func RegisterActionsForCards() {
