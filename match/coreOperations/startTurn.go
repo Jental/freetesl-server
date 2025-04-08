@@ -18,4 +18,6 @@ func StartTurn(playerState *models.PlayerMatchState) {
 	} else {
 		DrawCard(playerState)
 	}
+
+	playerState.SetRingActivity(playerState.GetRingGemCount() > 0)
 }

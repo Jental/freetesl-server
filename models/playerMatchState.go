@@ -24,6 +24,10 @@ type PlayerMatchState struct {
 	leftLane    *Lane
 	rightLane   *Lane
 
+	hasRing      bool
+	ringGemCount uint8
+	isRingActive bool
+
 	OpponentState           *PlayerMatchState
 	MatchState              *Match
 	Connection              *websocket.Conn
@@ -41,6 +45,8 @@ func NewPlayerMatchState(
 	runes byte,
 	mana int,
 	maxMana int,
+	hasRing bool,
+	ringGemCount uint8,
 	deck []*CardInstance,
 	hand []*CardInstance,
 	connection *websocket.Conn,
@@ -58,6 +64,10 @@ func NewPlayerMatchState(
 		runes:       runes,
 		mana:        mana,
 		maxMana:     maxMana,
+
+		hasRing:      hasRing,
+		ringGemCount: ringGemCount,
+		isRingActive: hasRing,
 
 		OpponentState:            nil,
 		MatchState:               nil,
@@ -168,6 +178,24 @@ func (playerState *PlayerMatchState) SetMaxMana(maxMana int) {
 
 	playerState.SendEvent(enums.BackendEventManaChanged) // decided to reuse event
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentManaChanged)
+}
+
+func (playerState *PlayerMatchState) HasRing() bool { return playerState.hasRing }
+
+func (playerState *PlayerMatchState) GetRingGemCount() uint8 { return playerState.ringGemCount }
+func (playerState *PlayerMatchState) SetRingGemCount(ringGemCount uint8) {
+	playerState.ringGemCount = ringGemCount
+
+	playerState.SendEvent(enums.BackendEventRingChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentRingChanged)
+}
+
+func (playerState *PlayerMatchState) IsRingActive() bool { return playerState.isRingActive }
+func (playerState *PlayerMatchState) SetRingActivity(isActive bool) {
+	playerState.isRingActive = isActive
+
+	playerState.SendEvent(enums.BackendEventRingChanged)
+	playerState.OpponentState.SendEvent(enums.BackendEventOpponentRingChanged)
 }
 
 func (playerState *PlayerMatchState) GetCardInstanceWaitingForAction() *CardInstance {

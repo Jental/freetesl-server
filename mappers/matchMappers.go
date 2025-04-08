@@ -46,6 +46,8 @@ func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchSt
 		RightLaneCards: lo.Map(model.GetRightLaneCards(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
+		RingGemCount: model.GetRingGemCount(),
+		IsRingActive: model.IsRingActive(),
 	}
 
 	cardInstanceForAction := model.GetCardInstanceWaitingForAction()

@@ -12,6 +12,7 @@ const (
 	BackendEventMatchStateRefresh                  BackendEventType = 6
 	BackendEventCardInstancesChanged               BackendEventType = 7
 	BackendEventCardWatingForActionChanged         BackendEventType = 8
+	BackendEventRingChanged                        BackendEventType = 9
 	BackendEventOpponentDeckChanged                BackendEventType = 100
 	BackendEventOpponentHandChanged                BackendEventType = 101
 	BackendEventOpponentDiscardPileChanged         BackendEventType = 102
@@ -21,6 +22,7 @@ const (
 	BackendEventOpponentMatchStateRefresh          BackendEventType = 106
 	BackendEventOpponentCardInstancesChanged       BackendEventType = 107
 	BackendEventOpponentCardWatingForActionChanged BackendEventType = 108
+	BackendEventOpponentRingChanged                BackendEventType = 109
 	BackendEventMatchStart                         BackendEventType = 200
 	BackendEventMatchEnd                           BackendEventType = 201
 	BackendEventSwitchTurn                         BackendEventType = 202

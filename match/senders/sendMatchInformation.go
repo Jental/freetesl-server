@@ -47,6 +47,8 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 			AvatarName: opponent.AvatarName,
 			State:      byte(enums.PlayerStateInMatch),
 		},
+		HasRing:         playerState.HasRing(),
+		OpponentHasRing: playerState.OpponentState.HasRing(),
 	}
 
 	var json = map[string]interface{}{

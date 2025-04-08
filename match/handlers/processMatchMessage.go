@@ -68,6 +68,8 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		go Concede(playerID)
 	case "waitedUserActionsCompleted":
 		go WaitedUserActionsCompleted(playerID)
+	case "useRing":
+		go UseRing(playerID)
 	}
 
 	return nil

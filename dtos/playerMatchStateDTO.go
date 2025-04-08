@@ -10,5 +10,7 @@ type PlayerMatchStateDTO struct {
 	Hand                         []CardInstanceStateDTO `json:"hand"`
 	LeftLaneCards                []CardInstanceStateDTO `json:"leftLaneCards"`
 	RightLaneCards               []CardInstanceStateDTO `json:"rightLaneCards"`
+	RingGemCount                 uint8                  `json:"ringGemCount"`
+	IsRingActive                 bool                   `json:"isRingActive"`
 	CardInstanceWaitingForAction *uuid.UUID             `json:"cardInstanceWaitingForAction"`
 }

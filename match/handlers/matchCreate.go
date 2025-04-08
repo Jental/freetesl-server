@@ -77,17 +77,17 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 }
 
 func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
-	playerState, err := createInitialPlayerMatchState(playerID, nil) // connections will be filled later when user establishes a connection
-	if err != nil {
-		return nil, err
-	}
-
-	opponentState, err := createInitialPlayerMatchState(opponentID, nil) // connections will be filled later when user establishes a connection
-	if err != nil {
-		return nil, err
-	}
-
 	playerWithTurnID := selectRandomPlayer(playerID, opponentID)
+
+	playerState, err := createInitialPlayerMatchState(playerID, playerWithTurnID == playerID, nil) // connections will be filled later when user establishes a connection
+	if err != nil {
+		return nil, err
+	}
+
+	opponentState, err := createInitialPlayerMatchState(opponentID, playerWithTurnID == opponentID, nil) // connections will be filled later when user establishes a connection
+	if err != nil {
+		return nil, err
+	}
 
 	var matchState = models.Match{
 		Id: uuid.New(),
@@ -122,7 +122,7 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	return &matchState.Id, nil
 }
 
-func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.PlayerMatchState, error) {
+func createInitialPlayerMatchState(playerID int, hasFirstTurn bool, conn *websocket.Conn) (*models.PlayerMatchState, error) {
 	decks, err := services.GetDecks(playerID)
 	if err != nil {
 		return nil, err
@@ -153,12 +153,16 @@ func createInitialPlayerMatchState(playerID int, conn *websocket.Conn) (*models.
 		card.IsActive = true
 	}
 
+	hasRing := !hasFirstTurn
+
 	var playerState = models.NewPlayerMatchState(
 		playerID,
 		30,
 		5,
 		0,
 		0,
+		hasRing,
+		3,
 		leftDeck,
 		hand,
 		conn,

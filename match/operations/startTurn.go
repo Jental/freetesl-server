@@ -17,6 +17,7 @@ func startTurnCheck() error {
 // logic itself
 func startTurn(playerState *models.PlayerMatchState, matchState *models.Match) {
 	coreOperations.StartTurn(playerState)
+	playerState.OpponentState.SetRingActivity(false)
 
 	effectsWereUpdated := false
 	for _, card := range playerState.GetAllLaneCardInstances() {
