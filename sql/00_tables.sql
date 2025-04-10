@@ -74,6 +74,7 @@ CREATE TABLE players (
 CREATE TABLE decks (
     id serial PRIMARY KEY,
     name varchar(255) NOT NULL,
+    avatar_name varchar(255),
     player_id int NOT NULL REFERENCES players(id)
 );
 

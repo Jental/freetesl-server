@@ -14,7 +14,7 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 	defer db.Close()
 
 	rows, err := db.Query(`
-		SELECT d.id as id, d.name as name, dc.card_id as card_id, dc.count as count
+		SELECT d.id as id, d.name as name, d.avatar_name, dc.card_id as card_id, dc.count as count
 		FROM decks as d 
 		INNER JOIN deck_cards as dc ON dc.deck_id = d.id
 		WHERE d.player_id = $1
@@ -29,15 +29,16 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 	for rows.Next() {
 		var id int
 		var name string
+		var avatarName string
 		var cardID int
 		var count int
-		if err := rows.Scan(&id, &name, &cardID, &count); err != nil {
+		if err := rows.Scan(&id, &name, &avatarName, &cardID, &count); err != nil {
 			return nil, err
 		}
 
 		deck, exists := decks[id]
 		if !exists {
-			var newDeck = models.Deck{ID: id, Name: name, Cards: make(map[int]int)}
+			var newDeck = models.Deck{ID: id, Name: name, AvatarName: avatarName, Cards: make(map[int]int)}
 			deck = &newDeck
 			decks[id] = &newDeck
 		}

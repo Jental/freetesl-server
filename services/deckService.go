@@ -3,6 +3,8 @@ package services
 import (
 	"errors"
 	"fmt"
+	"maps"
+	"slices"
 
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/db/queries"
@@ -21,54 +23,56 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 		return nil, err
 	}
 
+	allCardClasses, err := GetAllCardClasses()
+	if err != nil {
+		return nil, err
+	}
+
+	errs := make([]error, 0)
+
 	decks := lo.Map(decksFromDB, func(dbDeck *dbModels.Deck, _ int) *models.Deck {
 		deck := models.Deck{
-			ID:       dbDeck.ID,
-			Name:     dbDeck.Name,
-			PlayerID: dbDeck.PlayerID,
-			Cards: lo.MapToSlice(dbDeck.Cards, func(cardID int, count int) *models.CardWithCount {
-				card, exists := allCards[cardID]
-				if !exists {
-					cardWithCount := models.CardWithCount{
-						Card:  nil,
-						Count: -cardID, // hack to pass it to error
-					}
-					return &cardWithCount
-				}
-
-				cardWithCount := models.CardWithCount{
-					Card:  card,
-					Count: count,
-				}
-
-				return &cardWithCount
-			}),
+			ID:         dbDeck.ID,
+			Name:       dbDeck.Name,
+			AvatarName: dbDeck.AvatarName,
+			PlayerID:   dbDeck.PlayerID,
+			Cards:      make([]*models.CardWithCount, 0),
 		}
+
+		attributes := make(map[int]*dbModels.Attribute)
+
+		for cardID, count := range dbDeck.Cards {
+			card, exists := allCards[cardID]
+			if !exists {
+				errs = append(errs, fmt.Errorf("deck [%d] have unexisting card: '%d'", deck.ID, cardID))
+				continue
+			}
+
+			cardWithCount := models.CardWithCount{
+				Card:  card,
+				Count: count,
+			}
+
+			deck.Cards = append(deck.Cards, &cardWithCount)
+
+			cardClass, exists := allCardClasses[card.ClassID]
+			if !exists {
+				errs = append(errs, fmt.Errorf("deck [%d] have a card [%d] with an unknown class: '%d'", deck.ID, cardID, card.ClassID))
+			}
+			for _, attribute := range cardClass.Attributes {
+				_, exists := attributes[attribute.ID]
+				if !exists {
+					attributes[attribute.ID] = attribute
+				}
+			}
+		}
+
+		deck.Attributes = slices.Collect(maps.Values(attributes))
+
 		return &deck
 	})
 
-	decksWithMissingCards := make([]struct {
-		deckID int
-		cardID int
-	}, 0)
-	for _, deck := range decks {
-		for _, card := range deck.Cards {
-			if card.Card == nil {
-				decksWithMissingCards = append(decksWithMissingCards, struct {
-					deckID int
-					cardID int
-				}{deckID: deck.ID, cardID: -card.Count})
-			}
-		}
-	}
-
-	if len(decksWithMissingCards) > 0 {
-		errs := lo.Map(decksWithMissingCards, func(el struct {
-			deckID int
-			cardID int
-		}, _ int) error {
-			return fmt.Errorf("deck with id '%d' have unexisting card: '%d'", el.deckID, el.cardID)
-		})
+	if len(errs) > 0 {
 		return nil, errors.Join(errs...)
 	}
 
