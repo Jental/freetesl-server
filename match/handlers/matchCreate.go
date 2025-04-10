@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -61,7 +63,7 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	matchID, err := matchCreate(playerID, dto.OpponentID)
+	matchID, err := matchCreate(playerID, dto.OpponentID, dto.DeckID)
 	if err != nil {
 		log.Panic(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -76,15 +78,20 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(responseDTO)
 }
 
-func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
+func matchCreate(playerID int, opponentID int, deckID int) (*uuid.UUID, error) {
+	opponentRuntimeInfo, exists := services.GetPlayerRuntimeInfo(opponentID)
+	if !exists || opponentRuntimeInfo.SelectedDeckID == nil {
+		return nil, fmt.Errorf("[%d]: opponent selected deck id is not found", playerID)
+	}
+
 	playerWithTurnID := selectRandomPlayer(playerID, opponentID)
 
-	playerState, err := createInitialPlayerMatchState(playerID, playerWithTurnID == playerID, nil) // connections will be filled later when user establishes a connection
+	playerState, err := createInitialPlayerMatchState(playerID, deckID, playerWithTurnID == playerID, nil) // connections will be filled later when user establishes a connection
 	if err != nil {
 		return nil, err
 	}
 
-	opponentState, err := createInitialPlayerMatchState(opponentID, playerWithTurnID == opponentID, nil) // connections will be filled later when user establishes a connection
+	opponentState, err := createInitialPlayerMatchState(opponentID, *opponentRuntimeInfo.SelectedDeckID, playerWithTurnID == opponentID, nil) // connections will be filled later when user establishes a connection
 	if err != nil {
 		return nil, err
 	}
@@ -116,21 +123,27 @@ func matchCreate(playerID int, opponentID int) (*uuid.UUID, error) {
 	}
 	operations.StartTurn(playerWithTurn, &matchState)
 
-	services.SetPlayerState(playerID, enums.PlayerStateInMatch)
-	services.SetPlayerState(opponentID, enums.PlayerStateInMatch)
+	services.SetPlayerState(playerID, enums.PlayerStateInMatch, nil)
+	services.SetPlayerState(opponentID, enums.PlayerStateInMatch, nil)
 
 	return &matchState.Id, nil
 }
 
-func createInitialPlayerMatchState(playerID int, hasFirstTurn bool, conn *websocket.Conn) (*models.PlayerMatchState, error) {
-	decks, err := services.GetDecks(playerID)
+func createInitialPlayerMatchState(playerID int, deckID int, hasFirstTurn bool, conn *websocket.Conn) (*models.PlayerMatchState, error) {
+	decks, err := services.GetDecks(playerID) // TODO: find deck in db by id
 	if err != nil {
 		return nil, err
 	}
 
+	deckIdx := slices.IndexFunc(decks, func(d *models.Deck) bool { return d.ID == deckID })
+	if deckIdx < 0 {
+		return nil, fmt.Errorf("[%d]: deck with id '%d' is not found", playerID, deckID)
+	}
+	deck := decks[deckIdx]
+
 	var deckInstance []*models.CardInstance = lo.Shuffle(
 		lo.FlatMap(
-			decks[0].Cards,
+			deck.Cards,
 			func(cardWithCount *models.CardWithCount, _ int) []*models.CardInstance {
 				return lo.Times(cardWithCount.Count, func(_ int) *models.CardInstance {
 					return &models.CardInstance{

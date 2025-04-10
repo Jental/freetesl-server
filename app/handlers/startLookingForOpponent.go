@@ -1,14 +1,16 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/jental/freetesl-server/dtos"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 )
 
-func setPlayerState(w http.ResponseWriter, req *http.Request, state enums.PlayerState) {
+func setPlayerState(w http.ResponseWriter, req *http.Request, state enums.PlayerState, selectedDeckID *int) {
 	var playerID int = -1
 	contextVal := req.Context().Value(enums.ContextKeyUserID)
 	if contextVal == nil {
@@ -26,14 +28,23 @@ func setPlayerState(w http.ResponseWriter, req *http.Request, state enums.Player
 		return
 	}
 
-	services.SetPlayerState(playerID, state)
+	services.SetPlayerState(playerID, state, selectedDeckID)
 	w.WriteHeader(http.StatusOK)
 }
 
 func StartLookingForOpponent(w http.ResponseWriter, req *http.Request) {
-	setPlayerState(w, req, enums.PlayerStateLookingForOpponent)
+	var decoder = json.NewDecoder(req.Body)
+	var dto dtos.StartLookingForOpponentDTO
+	err := decoder.Decode(&dto)
+	if err != nil {
+		log.Panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	setPlayerState(w, req, enums.PlayerStateLookingForOpponent, &dto.DeckID)
 }
 
 func StopLookingForOpponent(w http.ResponseWriter, req *http.Request) {
-	setPlayerState(w, req, enums.PlayerStateOnline)
+	setPlayerState(w, req, enums.PlayerStateOnline, nil)
 }

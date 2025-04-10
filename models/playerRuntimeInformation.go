@@ -9,4 +9,5 @@ import (
 type PlayerRuntimeInformation struct {
 	State            enums.PlayerState
 	LastActivityTime *time.Time
+	SelectedDeckID   *int // nullable; for LookingForOpponent state
 }

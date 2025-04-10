@@ -73,7 +73,12 @@ func GetPlayer(playerID int) (*models.Player, error) {
 	return &player, nil
 }
 
-func SetPlayerState(playerID int, state enums.PlayerState) {
+func GetPlayerRuntimeInfo(playerID int) (*models.PlayerRuntimeInformation, bool) {
+	info, exists := playersRunimeInfo[playerID]
+	return info, exists
+}
+
+func SetPlayerState(playerID int, state enums.PlayerState, selectedDeckID *int) {
 	if state == enums.PlayerStateOffline {
 		delete(playersRunimeInfo, playerID)
 	} else {
@@ -81,6 +86,7 @@ func SetPlayerState(playerID int, state enums.PlayerState) {
 		playersRunimeInfo[playerID] = &models.PlayerRuntimeInformation{
 			State:            state,
 			LastActivityTime: &now,
+			SelectedDeckID:   selectedDeckID,
 		}
 	}
 }
@@ -91,6 +97,6 @@ func UpdatePlayerLastActivityTime(playerID int) {
 		var now = time.Now()
 		info.LastActivityTime = &now
 	} else {
-		SetPlayerState(playerID, enums.PlayerStateOnline)
+		SetPlayerState(playerID, enums.PlayerStateOnline, nil)
 	}
 }
