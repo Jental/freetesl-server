@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -130,16 +129,10 @@ func matchCreate(playerID int, opponentID int, deckID int) (*uuid.UUID, error) {
 }
 
 func createInitialPlayerMatchState(playerID int, deckID int, hasFirstTurn bool, conn *websocket.Conn) (*models.PlayerMatchState, error) {
-	decks, err := services.GetDecks(playerID) // TODO: find deck in db by id
+	deck, err := services.GetDeck(playerID, deckID)
 	if err != nil {
 		return nil, err
 	}
-
-	deckIdx := slices.IndexFunc(decks, func(d *models.Deck) bool { return d.ID == deckID })
-	if deckIdx < 0 {
-		return nil, fmt.Errorf("[%d]: deck with id '%d' is not found", playerID, deckID)
-	}
-	deck := decks[deckIdx]
 
 	var deckInstance []*models.CardInstance = lo.Shuffle(
 		lo.FlatMap(

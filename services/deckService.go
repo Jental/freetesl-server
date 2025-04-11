@@ -78,3 +78,18 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 
 	return decks, nil
 }
+
+func GetDeck(playerID int, deckID int) (*models.Deck, error) {
+	decks, err := GetDecks(playerID) // TODO: find deck in db by id
+	if err != nil {
+		return nil, err
+	}
+
+	deckIdx := slices.IndexFunc(decks, func(d *models.Deck) bool { return d.ID == deckID })
+	if deckIdx < 0 {
+		return nil, fmt.Errorf("[%d]: deck with id '%d' is not found", playerID, deckID)
+	}
+	deck := decks[deckIdx]
+
+	return deck, nil
+}

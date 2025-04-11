@@ -47,6 +47,7 @@ func main() {
 	http.Handle("GET /lookingForOpponentStatus", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.GetLookingForOpponentStatus))))
 	http.Handle("POST /matchCreate", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(matchHandlers.MatchCreate))))
 	http.Handle("GET /decks", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.GetDecks))))
+	http.Handle("GET /decks/export", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.ExportDeck))))
 	http.Handle("/ws", appHandlers.AuthCheckMiddleware(http.HandlerFunc(matchHandlers.ConnectAndJoinMatch)))
 
 	log.Fatal(http.ListenAndServe(*addr, appHandlers.RequestLoggerMiddleware(http.DefaultServeMux)))
