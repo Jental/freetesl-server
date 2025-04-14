@@ -10,6 +10,7 @@ import (
 )
 
 var allCardsCache map[int]*dbModels.Card = nil
+var allCardsByNameCache map[string]*dbModels.Card = nil
 var allCardCacheMtx sync.Mutex
 
 func GetAllCards() ([]*dbModels.Card, error) {
@@ -30,10 +31,22 @@ func GetAllCardsMap() (map[int]*dbModels.Card, error) {
 			return nil, err
 		}
 		allCardsCache = make(map[int]*dbModels.Card)
+		allCardsByNameCache = make(map[string]*dbModels.Card)
 		for _, card := range cardsFromDB {
 			allCardsCache[card.ID] = card
+			allCardsByNameCache[card.Name] = card
 		}
 	}
 
 	return allCardsCache, nil
+}
+
+func GetCardByName(cardName string) (*dbModels.Card, bool, error) {
+	_, err := GetAllCardsMap() // to init cache
+	if err != nil {
+		return nil, false, err
+	}
+
+	card, exists := allCardsByNameCache[cardName]
+	return card, exists, nil
 }
