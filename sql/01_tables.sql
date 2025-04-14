@@ -1,5 +1,3 @@
-CREATE DATABASE tesl;
-
 CREATE TABLE attributes (
     id int NOT NULL PRIMARY KEY,
     name varchar(255) NOT NULL,
