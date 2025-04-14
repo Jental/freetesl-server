@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -8,12 +9,18 @@ import (
 	"github.com/jental/freetesl-server/db/models"
 )
 
-func AddDeck(request *models.AddDeckDbRequest) (int, error) {
+func AddDeck(ctx *context.Context, request *models.AddDeckDbRequest) (int, error) {
 	db, err := db.OpenAndTestConnection()
 	if err != nil {
 		return -1, err
 	}
 	defer db.Close()
+
+	tx, err := db.BeginTx(*ctx, nil)
+	if err != nil {
+		return -1, err
+	}
+	defer tx.Rollback()
 
 	rows, err := db.Query(`
 		INSERT INTO decks (name, player_id, avatar_name)
@@ -28,7 +35,6 @@ func AddDeck(request *models.AddDeckDbRequest) (int, error) {
 	if !rows.Next() {
 		return -1, fmt.Errorf("AddDeck: id is expected to be returned")
 	}
-
 	var id int
 	err = rows.Scan(&id)
 	if err != nil {
@@ -49,9 +55,14 @@ func AddDeck(request *models.AddDeckDbRequest) (int, error) {
 		INSERT INTO deck_cards (deck_id, card_id, count)
 		VALUES %s
 	`, valuesString)
-	_, err = db.Query(query, parameters...)
+	_, err = db.Exec(query, parameters...)
 	if err != nil {
 		return id, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return -1, err
 	}
 
 	return id, nil

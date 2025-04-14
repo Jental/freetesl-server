@@ -76,5 +76,9 @@ func MapToDeckDTO(model *models.Deck) *dtos.DeckDTO {
 }
 
 func MapToDeckDTOs(model []*models.Deck) []*dtos.DeckDTO {
-	return lo.Map(model, func(item *models.Deck, _ int) *dtos.DeckDTO { return MapToDeckDTO(item) })
+	mapped := lo.Map(model, func(item *models.Deck, _ int) *dtos.DeckDTO { return MapToDeckDTO(item) })
+	slices.SortFunc(mapped, func(attr0 *dtos.DeckDTO, attr1 *dtos.DeckDTO) int {
+		return attr0.ID - attr1.ID
+	})
+	return mapped
 }

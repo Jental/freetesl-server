@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"maps"
@@ -92,4 +93,8 @@ func GetDeck(playerID int, deckID int) (*models.Deck, error) {
 	deck := decks[deckIdx]
 
 	return deck, nil
+}
+
+func DeleteDeck(ctx *context.Context, playerID int, deckID int) error {
+	return queries.DeleteDeck(ctx, deckID, playerID)
 }

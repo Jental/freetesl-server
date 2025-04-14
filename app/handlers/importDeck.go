@@ -14,7 +14,8 @@ import (
 
 func ImportDeck(w http.ResponseWriter, req *http.Request) {
 	var playerID int = -1
-	contextVal := req.Context().Value(enums.ContextKeyUserID)
+	ctx := req.Context()
+	contextVal := ctx.Value(enums.ContextKeyUserID)
 	if contextVal == nil {
 		log.Println("player id is not found in a context")
 	} else {
@@ -53,7 +54,7 @@ func ImportDeck(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = queries.AddDeck(deckAddRequest)
+	_, err = queries.AddDeck(&ctx, deckAddRequest)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -18,6 +18,7 @@ func GetDecks(playerID int) ([]*models.Deck, error) {
 		FROM decks as d 
 		INNER JOIN deck_cards as dc ON dc.deck_id = d.id
 		WHERE d.player_id = $1
+		ORDER BY id ASC
 	`, playerID)
 	if err != nil {
 		return nil, err
