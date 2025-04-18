@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/mappers"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/common"
+	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/mappers"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/samber/lo"
 )
 
@@ -21,12 +22,17 @@ func SendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, matchSta
 	return sendAllCardInstancesToPlayer(playerState, cards)
 }
 
-func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []*models.CardInstance) error {
+func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []models.CardInstance) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
 	}
 
-	var dto = lo.Map(cards, func(card *models.CardInstance, _ int) dtos.CardInstanceDTO { return mappers.MapToCardInstanceDTO(card) })
+	dto, err := common.MapErr(cards, func(card models.CardInstance, _ int) (dtos.CardInstanceDTO, error) {
+		return mappers.MapToCardInstanceDTO(card)
+	})
+	if err != nil {
+		return err
+	}
 	var json = map[string]interface{}{
 		"method": "allCardInstances",
 		"body":   dto,
@@ -38,7 +44,7 @@ func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	err := sendJson(playerState, json)
+	err = sendJson(playerState, json)
 	if err != nil {
 		return err
 	}
@@ -48,7 +54,7 @@ func sendAllCardInstancesToPlayer(playerState *models.PlayerMatchState, cards []
 	return nil
 }
 
-func getAllCardInstances(matchState *models.Match) ([]*models.CardInstance, error) {
+func getAllCardInstances(matchState *models.Match) ([]models.CardInstance, error) {
 	if !matchState.Player0State.HasValue || !matchState.Player1State.HasValue {
 		return nil, fmt.Errorf("match is not started yet")
 	}
@@ -59,12 +65,18 @@ func getAllCardInstances(matchState *models.Match) ([]*models.CardInstance, erro
 	return append(player0CardInstances, player1CardInstances...), nil
 }
 
-func getAllCardInstancesFromPlayer(playerState *models.PlayerMatchState) []*models.CardInstance {
-	var result []*models.CardInstance
+func getAllCardInstancesFromPlayer(playerState *models.PlayerMatchState) []models.CardInstance {
+	var result []models.CardInstance
 	result = append(result, playerState.GetDeck()...)
 	result = append(result, playerState.GetHand()...)
-	result = append(result, playerState.GetLeftLaneCards()...)
-	result = append(result, playerState.GetRightLaneCards()...)
+	result = append(result, lo.Map(playerState.GetLeftLaneCards(), func(creatureCardIntance *models.CardInstanceCreature, _ int) models.CardInstance {
+		var cardInstance models.CardInstance = creatureCardIntance
+		return cardInstance
+	})...)
+	result = append(result, lo.Map(playerState.GetRightLaneCards(), func(creatureCardIntance *models.CardInstanceCreature, _ int) models.CardInstance {
+		var cardInstance models.CardInstance = creatureCardIntance
+		return cardInstance
+	})...)
 	result = append(result, playerState.GetDiscardPile()...)
 	return result
 }

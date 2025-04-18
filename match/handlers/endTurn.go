@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/match"
 	"github.com/jental/freetesl-server/match/operations"
 )
 
@@ -16,10 +16,10 @@ func EndTurn(playerID int) {
 	}
 
 	for _, card := range playerState.GetLeftLaneCards() {
-		card.IsActive = false
+		card.SetIsActive(false)
 	}
 	for _, card := range playerState.GetRightLaneCards() {
-		card.IsActive = false
+		card.SetIsActive(false)
 	}
 
 	coreOperations.SwitchTurn(matchState)

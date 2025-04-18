@@ -14,9 +14,9 @@ import (
 
 type PlayerMatchState struct {
 	PlayerID    int
-	deck        []*CardInstance
-	hand        []*CardInstance
-	discardPile []*CardInstance
+	deck        []CardInstance // CardInstance - interface, it's implementations are pointers, like *CardInstanceAction
+	hand        []CardInstance
+	discardPile []CardInstance
 	health      int
 	runes       uint8
 	mana        int
@@ -35,7 +35,7 @@ type PlayerMatchState struct {
 	PartiallyParsedMessages chan PartiallyParsedMessage
 	Events                  chan enums.BackendEventType
 
-	сardInstanceWaitingForAction *CardInstance // to show on FE something prophecy-action-select-like, later there'll be selects for 3-cards, but that'll be another field
+	сardInstanceWaitingForAction CardInstance  // to show on FE something prophecy-action-select-like, later there'll be selects for 3-cards, but that'll be another field
 	WaitingForUserActionChan     chan struct{} // TODO: make private and close in Dispose method (to be created)
 }
 
@@ -47,8 +47,8 @@ func NewPlayerMatchState(
 	maxMana int,
 	hasRing bool,
 	ringGemCount uint8,
-	deck []*CardInstance,
-	hand []*CardInstance,
+	deck []CardInstance,
+	hand []CardInstance,
 	connection *websocket.Conn,
 ) *PlayerMatchState {
 	leftLane := NewLane(enums.LanePositionLeft, enums.LaneTypeNormal)
@@ -59,7 +59,7 @@ func NewPlayerMatchState(
 		hand:        hand,
 		leftLane:    leftLane,
 		rightLane:   rightLane,
-		discardPile: make([]*CardInstance, 0),
+		discardPile: make([]CardInstance, 0),
 		health:      health,
 		runes:       runes,
 		mana:        mana,
@@ -90,24 +90,24 @@ func (playerState *PlayerMatchState) SendEvent(event enums.BackendEventType) {
 	}
 }
 
-func (playerState *PlayerMatchState) GetDeck() []*CardInstance { return playerState.deck }
-func (playerState *PlayerMatchState) SetDeck(deck []*CardInstance) {
+func (playerState *PlayerMatchState) GetDeck() []CardInstance { return playerState.deck }
+func (playerState *PlayerMatchState) SetDeck(deck []CardInstance) {
 	playerState.deck = deck
 
 	playerState.SendEvent(enums.BackendEventDeckChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentDeckChanged)
 }
 
-func (playerState *PlayerMatchState) GetHand() []*CardInstance { return playerState.hand }
-func (playerState *PlayerMatchState) SetHand(hand []*CardInstance) {
+func (playerState *PlayerMatchState) GetHand() []CardInstance { return playerState.hand }
+func (playerState *PlayerMatchState) SetHand(hand []CardInstance) {
 	playerState.hand = hand
 
 	playerState.SendEvent(enums.BackendEventHandChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentHandChanged)
 }
 
-func (playerState *PlayerMatchState) GetDiscardPile() []*CardInstance { return playerState.discardPile }
-func (playerState *PlayerMatchState) SetDiscardPile(discardPile []*CardInstance) {
+func (playerState *PlayerMatchState) GetDiscardPile() []CardInstance { return playerState.discardPile }
+func (playerState *PlayerMatchState) SetDiscardPile(discardPile []CardInstance) {
 	playerState.discardPile = discardPile
 
 	playerState.SendEvent(enums.BackendEventDiscardPileChanged)
@@ -125,15 +125,15 @@ func (playerState *PlayerMatchState) GetLane(laneID enums.LanePosition) *Lane {
 	return nil
 }
 
-func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstance {
+func (playerState *PlayerMatchState) GetLeftLaneCards() []*CardInstanceCreature {
 	return playerState.leftLane.cardInstances
 }
 
-func (playerState *PlayerMatchState) GetRightLaneCards() []*CardInstance {
+func (playerState *PlayerMatchState) GetRightLaneCards() []*CardInstanceCreature {
 	return playerState.rightLane.cardInstances
 }
 
-func (playerState *PlayerMatchState) GetLaneCards(laneID enums.LanePosition) []*CardInstance {
+func (playerState *PlayerMatchState) GetLaneCards(laneID enums.LanePosition) []*CardInstanceCreature {
 	if laneID == enums.LanePositionLeft {
 		return playerState.leftLane.cardInstances
 	} else {
@@ -141,8 +141,8 @@ func (playerState *PlayerMatchState) GetLaneCards(laneID enums.LanePosition) []*
 	}
 }
 
-func (playerState *PlayerMatchState) GetAllLaneCardInstances() []*CardInstance {
-	var result []*CardInstance
+func (playerState *PlayerMatchState) GetAllLaneCardInstances() []*CardInstanceCreature {
+	var result []*CardInstanceCreature
 	result = append(result, playerState.GetLeftLaneCards()...)
 	result = append(result, playerState.GetRightLaneCards()...)
 	return result
@@ -198,10 +198,10 @@ func (playerState *PlayerMatchState) SetRingActivity(isActive bool) {
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentRingChanged)
 }
 
-func (playerState *PlayerMatchState) GetCardInstanceWaitingForAction() *CardInstance {
+func (playerState *PlayerMatchState) GetCardInstanceWaitingForAction() CardInstance {
 	return playerState.сardInstanceWaitingForAction
 }
-func (playerState *PlayerMatchState) SetCardInstanceWaitingForAction(cardInstance *CardInstance) {
+func (playerState *PlayerMatchState) SetCardInstanceWaitingForAction(cardInstance CardInstance) {
 	playerState.сardInstanceWaitingForAction = cardInstance
 
 	playerState.SendEvent(enums.BackendEventCardWatingForActionChanged)
@@ -233,8 +233,8 @@ func (playerState *PlayerMatchState) WaitForCardInstanceAction(
 	}
 }
 
-func (playerState *PlayerMatchState) GetCardInstanceFromHand(cardInstanceID uuid.UUID) (*CardInstance, int, bool) {
-	var idx = slices.IndexFunc(playerState.GetHand(), func(el *CardInstance) bool { return el.CardInstanceID == cardInstanceID })
+func (playerState *PlayerMatchState) GetCardInstanceFromHand(cardInstanceID uuid.UUID) (CardInstance, int, bool) {
+	var idx = slices.IndexFunc(playerState.GetHand(), func(el CardInstance) bool { return el.GetBase().CardInstanceID == cardInstanceID })
 	if idx < 0 {
 		return nil, -1, false
 	} else {
@@ -242,7 +242,7 @@ func (playerState *PlayerMatchState) GetCardInstanceFromHand(cardInstanceID uuid
 	}
 }
 
-func (playerState *PlayerMatchState) GetCardInstanceFromLanes(cardInstanceID uuid.UUID) (*CardInstance, *Lane, int, bool) {
+func (playerState *PlayerMatchState) GetCardInstanceFromLanes(cardInstanceID uuid.UUID) (*CardInstanceCreature, *Lane, int, bool) {
 	cardInstance, idx, exists := playerState.leftLane.GetCardInstance(cardInstanceID)
 	if exists {
 		return cardInstance, playerState.leftLane, idx, true

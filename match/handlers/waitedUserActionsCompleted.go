@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/match"
 )
 
 func WaitedUserActionsCompleted(playerID int) {

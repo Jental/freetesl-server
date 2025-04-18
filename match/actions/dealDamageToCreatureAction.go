@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/jental/freetesl-server/match/coreOperations"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 type DealDamageToCreatureAction struct{}
@@ -29,9 +29,14 @@ func (action DealDamageToCreatureAction) Execute(context *models.ActionContext) 
 		return fmt.Errorf("[%d]: DealDamageToCreatureAction: ParametersValues is expected to be a single number string", context.PlayerState.PlayerID)
 	}
 
+	targetCreatureCardInstance, ok := context.TargetCardInstance.(*models.CardInstanceCreature)
+	if !ok {
+		return fmt.Errorf("[%d]: DealDamageToCreatureAction: TargetCardInstance is expected to be a creature", context.PlayerState.PlayerID)
+	}
+
 	log.Printf("[%d]: DealDamageToCreatureAction; cardID: '%d'; parameters: '%s'", context.PlayerState.PlayerID, *context.CardID, *context.ParametersValues)
 
-	coreOperations.ReduceCardHealth(context.TargetPlayerState, context.TargetCardInstance, context.TargetLane, damage)
+	coreOperations.ReduceCardHealth(context.TargetPlayerState, targetCreatureCardInstance, context.TargetLane, damage)
 
 	return nil
 }

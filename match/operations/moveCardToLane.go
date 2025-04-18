@@ -7,13 +7,13 @@ import (
 	"github.com/jental/freetesl-server/common"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/match/interceptors"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 // TODO: implement with inteface after signature becomes clear
-func moveCardToLaneCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane) error {
-	if !cardInstance.IsActive {
+func moveCardToLaneCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature, lane *models.Lane) error {
+	if !cardInstance.IsActive() {
 		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
 
@@ -29,9 +29,9 @@ func moveCardToLaneCheck(playerState *models.PlayerMatchState, cardInstance *mod
 }
 
 // logic itself
-func moveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, lane *models.Lane) {
+func moveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstanceCreature, lane *models.Lane) {
 	lane.AddCardInstance(cardInstance)
-	cardInstance.IsActive = false
+	cardInstance.SetIsActive(false)
 
 	// TODO: maybe do it through interceptor
 	effectsWereUpdated := false
@@ -48,7 +48,7 @@ func moveCardToLane(playerState *models.PlayerMatchState, matchState *models.Mat
 	}
 }
 
-func MoveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstance, lane *models.Lane) error {
+func MoveCardToLane(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstanceCreature, lane *models.Lane) error {
 	err := moveCardToLaneCheck(playerState, cardInstance, lane)
 	if err != nil {
 		return err

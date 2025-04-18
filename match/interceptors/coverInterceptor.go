@@ -3,7 +3,7 @@ package interceptors
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -14,7 +14,12 @@ func (ic CoverInterceptor) Execute(context *models.InterceptorContext) error {
 		return fmt.Errorf("[%d]: CoverInterceptor: no target card instance specified", context.PlayerState.PlayerID)
 	}
 
-	if context.TargetCardInstance.HasEffect(enums.EffectTypeCover) {
+	targetCreatureCardInstance, ok := context.TargetCardInstance.(*models.CardInstanceCreature)
+	if !ok {
+		return fmt.Errorf("[%d]: CoverInterceptor: target card instance is not a creature", context.PlayerState.PlayerID)
+	}
+
+	if targetCreatureCardInstance.HasEffect(enums.EffectTypeCover) {
 		return fmt.Errorf("[%d]: CoverInterceptor: cover is present", context.PlayerState.PlayerID)
 	}
 

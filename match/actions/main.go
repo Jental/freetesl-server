@@ -6,7 +6,7 @@ import (
 
 	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/match/interceptors"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 

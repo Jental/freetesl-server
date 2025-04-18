@@ -3,17 +3,22 @@ package operations
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 // TODO: implement with inteface after signature becomes clear
 func moveCardFromDeckToLaneCheck(playerState *models.PlayerMatchState, lane *models.Lane) error {
 	deck := playerState.GetDeck()
 	if len(deck) == 0 {
-		return fmt.Errorf("[%d]: deck is empty", playerState.PlayerID)
+		return fmt.Errorf("[%d]: MoveCardFromDeckToLane: deck is empty", playerState.PlayerID)
 	}
 
-	return moveCardToLaneCheck(playerState, deck[0], lane)
+	cardInstanceCreature, ok := deck[0].(*models.CardInstanceCreature)
+	if !ok {
+		return fmt.Errorf("[%d]: MoveCardFromDeckToLane: top card is not a creature", playerState.PlayerID)
+	}
+
+	return moveCardToLaneCheck(playerState, cardInstanceCreature, lane)
 }
 
 // logic itself
@@ -33,9 +38,9 @@ func moveCardFromDeckToLane(playerState *models.PlayerMatchState, matchState *mo
 	// - add ane more interceptor point - for card draw, use both (or event 3: moveToLane, draw and cardPlay) in this file
 
 	deck := playerState.GetDeck()
-	cardInstance := deck[0] // check has been done in the ...Check method
+	cardInstanceCreature := deck[0].(*models.CardInstanceCreature) // check has been done in the ...Check method
 
-	MoveCardToLane(playerState, matchState, cardInstance, lane)
+	MoveCardToLane(playerState, matchState, cardInstanceCreature, lane)
 	playerState.SetDeck(deck[1:])
 }
 

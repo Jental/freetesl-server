@@ -6,8 +6,9 @@ import (
 
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/db/queries"
-	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/models"
+	commonDTOs "github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -35,13 +36,13 @@ func SendMatchInformationToPlayer(playerState *models.PlayerMatchState, matchSta
 	}
 
 	var dto = dtos.MatchInformationDTO{
-		Player: &dtos.PlayerInformationDTO{
+		Player: &commonDTOs.PlayerInformationDTO{
 			ID:         playerID,
 			Name:       player.DisplayName,
 			AvatarName: player.AvatarName,
 			State:      byte(enums.PlayerStateInMatch),
 		},
-		Opponent: &dtos.PlayerInformationDTO{
+		Opponent: &commonDTOs.PlayerInformationDTO{
 			ID:         opponentID,
 			Name:       opponent.DisplayName,
 			AvatarName: opponent.AvatarName,

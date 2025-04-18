@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jental/freetesl-server/mappers"
-	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/match"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 )

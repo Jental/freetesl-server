@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/match"
 	"github.com/jental/freetesl-server/models/enums"
 )
 

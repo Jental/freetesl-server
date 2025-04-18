@@ -1,18 +1,20 @@
 package coreOperations
 
 import (
-	"github.com/jental/freetesl-server/models"
+	"fmt"
+
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func DrawCard(playerState *models.PlayerMatchState) *models.CardInstance {
+func DrawCard(playerState *models.PlayerMatchState) models.CardInstance {
 	var deck = playerState.GetDeck()
 	if len(deck) == 0 {
 		return nil // TODO: for now doing nothing, but later next rune should be broken
 	}
 
 	var drawnCard = deck[0]
-	drawnCard.IsActive = true
+	drawnCard.SetIsActive(true)
 	playerState.SetHand(append(playerState.GetHand(), drawnCard))
 	playerState.SetDeck(deck[1:])
 
@@ -45,7 +47,7 @@ func IncreasePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 	playerState.SetHealth(updatedHealth)
 }
 
-func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane, amount int) {
+func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature, lane *models.Lane, amount int) {
 	cardInstance.Health = cardInstance.Health - amount
 
 	if cardInstance.Health <= 0 {
@@ -60,8 +62,18 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
 
-func AddEffect(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, effect *models.Effect) {
-	cardInstance.Effects = append(cardInstance.Effects, effect)
+func AddEffect(playerState *models.PlayerMatchState, cardInstance models.CardInstance, effect *models.Effect) error {
+	creatureCardInstance, castSuccessed := cardInstance.(*models.CardInstanceCreature)
+	if castSuccessed {
+		creatureCardInstance.Effects = append(creatureCardInstance.Effects, effect)
+	} else {
+		itemCardInstance, castSuccessed := cardInstance.(*models.CardInstanceItem)
+		if castSuccessed {
+			itemCardInstance.Effects = append(itemCardInstance.Effects, effect)
+		} else {
+			return fmt.Errorf("AddEffect: effects can only be added to creatures and items")
+		}
+	}
 
 	playerState.SendEvent(enums.BackendEventCardInstancesChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentCardInstancesChanged)
@@ -69,4 +81,6 @@ func AddEffect(playerState *models.PlayerMatchState, cardInstance *models.CardIn
 	// to force lanes redraw
 	playerState.SendEvent(enums.BackendEventLanesChanged)
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
+
+	return nil
 }

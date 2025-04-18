@@ -6,7 +6,7 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/mappers"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 func SendAllCardsToPlayer(playerState *models.PlayerMatchState) error {

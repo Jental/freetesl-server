@@ -5,10 +5,10 @@ import (
 
 	"github.com/jental/freetesl-server/common"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/match/interceptors"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/match"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -95,7 +95,7 @@ func reducePlayerHealth(
 				topCard := deck[0]
 				if topCard.HasKeyword(dbEnums.CardKeywordProphecy) {
 					log.Printf("[%d]: ReducePlayerHealth: prophecy", playerState.PlayerID)
-					topCard.IsActive = true
+					topCard.SetIsActive(true)
 					playerState.SetCardInstanceWaitingForAction(topCard)
 					// 0. user will select an action
 					// 1. drawCard or moveCardFromDeckToLane request will be called

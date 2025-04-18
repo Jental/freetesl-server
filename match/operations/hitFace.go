@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/jental/freetesl-server/match/interceptors"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 // TODO: implement with inteface after signature becomes clear
-func hitFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) error {
-	if !cardInstance.IsActive {
+func hitFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature) error {
+	if !cardInstance.IsActive() {
 		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
 
@@ -18,12 +18,12 @@ func hitFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.Car
 }
 
 // logic itself
-func hitFace(opponentState *models.PlayerMatchState, cardInstance *models.CardInstance) {
+func hitFace(opponentState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature) {
 	ReducePlayerHealth(opponentState, cardInstance.Power)
-	cardInstance.IsActive = false
+	cardInstance.SetIsActive(false)
 }
 
-func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane) error {
+func HitFace(playerState *models.PlayerMatchState, opponentState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature, lane *models.Lane) error {
 	err := hitFaceCheck(playerState, cardInstance)
 	if err != nil {
 		return err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	dbEnums "github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 type GuardInterceptor struct{}

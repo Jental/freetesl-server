@@ -3,7 +3,7 @@ package senders
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 func sendJson(playerState *models.PlayerMatchState, json map[string]interface{}) error {

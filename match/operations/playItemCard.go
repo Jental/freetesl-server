@@ -11,58 +11,52 @@ import (
 )
 
 // TODO: implement with inteface after signature becomes clear
-func playActionCardCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceAction) error {
-	if cardInstance.Card.Type != dbEnums.CardTypeAction {
-		return fmt.Errorf("[%d]: card with id '%s' is not an action", playerState.PlayerID, cardInstance.CardInstanceID.String())
+func playItemCardCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceItem) error {
+	if cardInstance.Card.Type != dbEnums.CardTypeItem {
+		return fmt.Errorf("[%d]: PlayItemCard: card with id '%s' is not an item", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
 
 	if !cardInstance.IsActive() {
-		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
+		return fmt.Errorf("[%d]: PlayItemCard: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID.String())
 	}
 
 	var currentMana = playerState.GetMana()
 	if cardInstance.Cost > currentMana {
-		return fmt.Errorf("not enough mana '%d' of '%d'", cardInstance.Cost, currentMana)
+		return fmt.Errorf("[%d]: PlayItemCard: not enough mana '%d' of '%d'", playerState.PlayerID, cardInstance.Cost, currentMana)
 	}
 
 	return nil
 }
 
 // logic itself
-func playActionCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceAction) {
+func playItemCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceItem) {
 	coreOperations.DiscardCardFromHand(playerState, cardInstance)
 	cardInstance.SetIsActive(false)
 	var currentMana = playerState.GetMana()
 	playerState.SetMana(currentMana - cardInstance.Cost)
 }
 
-func PlayActionCard(
+func PlayItemCard(
 	playerState *models.PlayerMatchState,
 	opponentState *models.PlayerMatchState,
-	cardInstance *models.CardInstanceAction,
+	cardInstance *models.CardInstanceItem,
 	targetCardInstance *models.CardInstanceCreature,
-	isTargetCardFromOpponent bool,
-	targetLane *models.Lane,
 ) error {
-	err := playActionCardCheck(playerState, cardInstance)
+	err := playItemCardCheck(playerState, cardInstance)
 	if err != nil {
 		return err
 	}
 
-	playActionCard(playerState, cardInstance)
+	playItemCard(playerState, cardInstance)
 
-	targetPlayerState := opponentState
-	if !isTargetCardFromOpponent {
-		targetPlayerState = playerState
-	}
 	interceptorContext := models.NewInterceptorContext(
 		playerState,
 		opponentState,
-		targetPlayerState,
+		playerState,
 		&cardInstance.Card.ID,
 		&cardInstance.CardInstanceID,
 		nil,
-		targetLane,
+		nil,
 		targetCardInstance,
 	)
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointCardPlay, &interceptorContext)

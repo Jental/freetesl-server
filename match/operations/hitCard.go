@@ -5,13 +5,13 @@ import (
 
 	"github.com/jental/freetesl-server/match/coreOperations"
 	"github.com/jental/freetesl-server/match/interceptors"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 // TODO: implement with inteface after signature becomes clear
-func hitCardCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstance, lane *models.Lane, opponentLane *models.Lane) error {
-	if !cardInstance.IsActive {
+func hitCardCheck(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature, lane *models.Lane, opponentLane *models.Lane) error {
+	if !cardInstance.IsActive() {
 		return fmt.Errorf("[%d]: card with id '%s' is not active", playerState.PlayerID, cardInstance.CardInstanceID)
 	}
 
@@ -26,21 +26,21 @@ func hitCardCheck(playerState *models.PlayerMatchState, cardInstance *models.Car
 func hitCard(
 	playerState *models.PlayerMatchState,
 	opponentState *models.PlayerMatchState,
-	cardInstance *models.CardInstance,
-	opponentCardInstance *models.CardInstance,
+	cardInstance *models.CardInstanceCreature,
+	opponentCardInstance *models.CardInstanceCreature,
 	lane *models.Lane,
 	opponentLane *models.Lane,
 ) {
 	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.Power)
 	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.Power)
-	cardInstance.IsActive = false
+	cardInstance.SetIsActive(false)
 }
 
 func HitCard(
 	playerState *models.PlayerMatchState,
 	opponentState *models.PlayerMatchState,
-	cardInstance *models.CardInstance,
-	opponentCardInstance *models.CardInstance,
+	cardInstance *models.CardInstanceCreature,
+	opponentCardInstance *models.CardInstanceCreature,
 	lane *models.Lane,
 	opponentLane *models.Lane,
 ) error {
@@ -49,6 +49,7 @@ func HitCard(
 		return err
 	}
 
+	var opponentCardInstanceCasted models.CardInstance = opponentCardInstance
 	interceptorContext := models.NewInterceptorContext(
 		playerState,
 		opponentState,
@@ -57,7 +58,7 @@ func HitCard(
 		&cardInstance.CardInstanceID,
 		lane,
 		opponentLane,
-		opponentCardInstance,
+		opponentCardInstanceCasted,
 	)
 	err = interceptors.ExecuteInterceptors(enums.InterceptorPointHitCardBefore, &interceptorContext)
 	if err != nil {

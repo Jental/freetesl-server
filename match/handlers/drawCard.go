@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/jental/freetesl-server/match"
 	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/match"
 	"github.com/jental/freetesl-server/models/enums"
 )
 

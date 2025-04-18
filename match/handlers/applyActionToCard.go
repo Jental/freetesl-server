@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	dbEnums "github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/match"
+	"github.com/jental/freetesl-server/match/match"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/match/operations"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -40,14 +40,15 @@ func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanc
 		}
 	}
 
-	if cardInstance.Card.Type != dbEnums.CardTypeAction {
-		fmt.Printf("[%d]: %s", playerID, err)
+	actionCardInstance, ok := cardInstance.(*models.CardInstanceAction)
+	if !ok {
+		fmt.Printf("[%d]: ApplyActionToCard: Expected an action card", playerID)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh)
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
 
-	err = operations.PlayActionCard(playerState, opponentState, cardInstance, targetCardInstance, isTargetCardFromOpponent, targetLane)
+	err = operations.PlayActionCard(playerState, opponentState, actionCardInstance, targetCardInstance, isTargetCardFromOpponent, targetLane)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state

@@ -4,10 +4,10 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
-func DiscardCardFromHand(playerState *models.PlayerMatchState, cardInstance *models.CardInstance) error {
+func DiscardCardFromHand(playerState *models.PlayerMatchState, cardInstance models.CardInstance) error {
 	var hand = playerState.GetHand()
 	var idx = slices.Index(hand, cardInstance)
 	if idx < 0 {

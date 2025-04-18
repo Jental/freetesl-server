@@ -3,31 +3,16 @@ package mappers
 import (
 	"fmt"
 
-	dbEnums "github.com/jental/freetesl-server/db/enums"
-	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/samber/lo"
 )
 
-func MapToCardInstanceDTO(model *models.CardInstance) dtos.CardInstanceDTO {
-	return dtos.CardInstanceDTO{
-		CardID:         model.Card.ID,
-		CardInstanceID: model.CardInstanceID,
-		Power:          model.Power,
-		Health:         model.Health,
-		Cost:           model.Cost,
-		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
-		Effects:        lo.Map(model.Effects, func(eff *models.Effect, _ int) int { return int(eff.EffectType) }),
-		// TODO:
-		// - send unique effect types
-		// - some effects (like silence) may overlap other effects - send only ones actual for FE
-	}
-}
-
-func MapToCardInstanceStateDTO(model *models.CardInstance) dtos.CardInstanceStateDTO {
+func MapToCardInstanceStateDTO(model models.CardInstance) dtos.CardInstanceStateDTO {
+	base := model.GetBase()
 	return dtos.CardInstanceStateDTO{
-		CardInstanceID: model.CardInstanceID,
-		IsActive:       model.IsActive,
+		CardInstanceID: base.CardInstanceID,
+		IsActive:       base.IsActive,
 	}
 }
 
@@ -37,13 +22,13 @@ func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchSt
 		Runes:   model.GetRunes(),
 		Mana:    model.GetMana(),
 		MaxMana: model.GetMaxMana(),
-		Hand: lo.Map(model.GetHand(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		Hand: lo.Map(model.GetHand(), func(item models.CardInstance, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
-		LeftLaneCards: lo.Map(model.GetLeftLaneCards(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		LeftLaneCards: lo.Map(model.GetLeftLaneCards(), func(item *models.CardInstanceCreature, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
-		RightLaneCards: lo.Map(model.GetRightLaneCards(), func(item *models.CardInstance, i int) dtos.CardInstanceStateDTO {
+		RightLaneCards: lo.Map(model.GetRightLaneCards(), func(item *models.CardInstanceCreature, i int) dtos.CardInstanceStateDTO {
 			return MapToCardInstanceStateDTO(item)
 		}),
 		RingGemCount: model.GetRingGemCount(),
@@ -52,7 +37,7 @@ func MapToPlayerMatchStateDTO(model *models.PlayerMatchState) dtos.PlayerMatchSt
 
 	cardInstanceForAction := model.GetCardInstanceWaitingForAction()
 	if cardInstanceForAction != nil {
-		result.CardInstanceWaitingForAction = &cardInstanceForAction.CardInstanceID
+		result.CardInstanceWaitingForAction = &cardInstanceForAction.GetBase().CardInstanceID
 	}
 
 	return result
@@ -101,11 +86,11 @@ func MapToDeckStateDTO(model *models.Match, playerID int) (*dtos.DeckStateDTO, e
 	}
 
 	return &dtos.DeckStateDTO{
-		Player: lo.Map(playerState.GetDeck(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Player: lo.Map(playerState.GetDeck(), func(item models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
-		Opponent: lo.Map(opponentState.GetDeck(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Opponent: lo.Map(opponentState.GetDeck(), func(item models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
@@ -130,11 +115,11 @@ func MapToDiscardPileStateDTO(model *models.Match, playerID int) (*dtos.DiscardP
 	}
 
 	return &dtos.DiscardPileStateDTO{
-		Player: lo.Map(playerState.GetDiscardPile(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Player: lo.Map(playerState.GetDiscardPile(), func(item models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),
-		Opponent: lo.Map(opponentState.GetDiscardPile(), func(item *models.CardInstance, i int) *dtos.CardInstanceStateDTO {
+		Opponent: lo.Map(opponentState.GetDiscardPile(), func(item models.CardInstance, i int) *dtos.CardInstanceStateDTO {
 			var r = MapToCardInstanceStateDTO(item)
 			return &r
 		}),

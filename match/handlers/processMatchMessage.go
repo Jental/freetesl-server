@@ -4,8 +4,8 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/mitchellh/mapstructure"
 )

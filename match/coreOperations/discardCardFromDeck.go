@@ -1,7 +1,7 @@
 package coreOperations
 
 import (
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 func DiscardCardFromDeck(playerState *models.PlayerMatchState) {

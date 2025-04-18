@@ -11,10 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/jental/freetesl-server/common"
-	"github.com/jental/freetesl-server/dtos"
-	"github.com/jental/freetesl-server/match"
+	commonDTOs "github.com/jental/freetesl-server/dtos"
+	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/match"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/match/operations"
-	"github.com/jental/freetesl-server/models"
 	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 	"github.com/samber/lo"
@@ -44,7 +45,7 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 	if err == nil {
 		// player already have a match
 		w.WriteHeader(http.StatusBadRequest)
-		errorResponseDTO := dtos.ErrorDTO{
+		errorResponseDTO := commonDTOs.ErrorDTO{
 			ErrorCode: int(enums.ErrorCodePlayerHasMatch),
 			Message:   enums.ErrorCodeMessages[enums.ErrorCodePlayerHasMatch],
 		}
@@ -69,7 +70,7 @@ func MatchCreate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseDTO := dtos.GuidIdDTO{
+	responseDTO := commonDTOs.GuidIdDTO{
 		ID: matchID,
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -134,29 +135,23 @@ func createInitialPlayerMatchState(playerID int, deckID int, hasFirstTurn bool, 
 		return nil, err
 	}
 
-	var deckInstance []*models.CardInstance = lo.Shuffle(
-		lo.FlatMap(
-			deck.Cards,
-			func(cardWithCount *models.CardWithCount, _ int) []*models.CardInstance {
-				return lo.Times(cardWithCount.Count, func(_ int) *models.CardInstance {
-					return &models.CardInstance{
-						Card:           cardWithCount.Card,
-						CardInstanceID: uuid.New(),
-						Power:          cardWithCount.Card.Power,
-						Health:         cardWithCount.Card.Health,
-						Cost:           cardWithCount.Card.Cost,
-						Keywords:       cardWithCount.Card.Keywords,
-						IsActive:       false,
-						Effects:        make([]*models.Effect, 0),
-					}
-				})
-			}))
+	deckInstance := make([]models.CardInstance, 0)
+	for _, cardWithCount := range deck.Cards {
+		for i := 0; i < cardWithCount.Count; i++ {
+			cardInstance, err := models.NewCardInstance(cardWithCount.Card)
+			if err != nil {
+				return nil, err
+			}
+			deckInstance = append(deckInstance, cardInstance)
+		}
+	}
+	shuffledDeckInstance := lo.Shuffle(deckInstance)
 
-	var hand []*models.CardInstance = deckInstance[:3]
-	var leftDeck = deckInstance[3:]
+	hand := shuffledDeckInstance[:3]
+	leftDeck := shuffledDeckInstance[3:]
 
 	for _, card := range hand {
-		card.IsActive = true
+		card.SetIsActive(true)
 	}
 
 	hasRing := !hasFirstTurn

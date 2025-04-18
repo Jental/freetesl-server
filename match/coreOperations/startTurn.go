@@ -2,7 +2,7 @@ package coreOperations
 
 import (
 	"github.com/jental/freetesl-server/common"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 func StartTurn(playerState *models.PlayerMatchState) {

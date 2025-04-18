@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/jental/freetesl-server/match/coreOperations"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 

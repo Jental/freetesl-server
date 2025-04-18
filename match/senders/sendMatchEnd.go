@@ -3,8 +3,8 @@ package senders
 import (
 	"log"
 
-	"github.com/jental/freetesl-server/mappers"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/mappers"
+	"github.com/jental/freetesl-server/match/models"
 )
 
 func SendMatchEndToPlayer(playerState *models.PlayerMatchState, match *models.Match) error {

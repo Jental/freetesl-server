@@ -5,7 +5,7 @@ import (
 
 	"github.com/jental/freetesl-server/common"
 	"github.com/jental/freetesl-server/match/coreOperations"
-	"github.com/jental/freetesl-server/models"
+	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
@@ -36,7 +36,7 @@ func startTurn(playerState *models.PlayerMatchState, matchState *models.Match) {
 			effectsWereUpdated = effectsWereUpdated || originalLen != len(card.Effects)
 		}
 
-		card.IsActive = !card.HasEffect(enums.EffectTypeShackled)
+		card.SetIsActive(!card.HasEffect(enums.EffectTypeShackled))
 	}
 
 	if effectsWereUpdated {

@@ -6,7 +6,7 @@ type ActionContext struct {
 	CardID             *int
 	ParametersValues   *string
 	TargetPlayerState  *PlayerMatchState // to be able to modify it's hand or lane cards
-	TargetCardInstance *CardInstance
+	TargetCardInstance CardInstance
 	TargetLane         *Lane
 }
 
@@ -20,7 +20,7 @@ func NewActionContext(
 	cardID *int,
 	parametersValues *string,
 	targetPlayerState *PlayerMatchState,
-	targetCardInstance *CardInstance,
+	targetCardInstance CardInstance,
 	targetLane *Lane,
 ) ActionContext {
 	return ActionContext{

@@ -7,12 +7,7 @@ import (
 
 	appHandlers "github.com/jental/freetesl-server/app/handlers"
 	"github.com/jental/freetesl-server/match"
-	matchActions "github.com/jental/freetesl-server/match/actions"
 	matchHandlers "github.com/jental/freetesl-server/match/handlers"
-	matchInterceptors "github.com/jental/freetesl-server/match/interceptors"
-	matchSenders "github.com/jental/freetesl-server/match/senders"
-	"github.com/jental/freetesl-server/models"
-	"github.com/jental/freetesl-server/models/enums"
 	"github.com/jental/freetesl-server/services"
 )
 
@@ -24,19 +19,7 @@ func main() {
 
 	go services.StartPlayersActivityMonitoring()
 
-	match.MatchMessageHandlerFn = matchHandlers.ProcessMatchMessage
-	match.BackendEventHandlerFn = matchSenders.ProcessBackendEvent
-
-	var guardInterceptor models.Interceptor = matchInterceptors.GuardInterceptor{}
-	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitFaceBefore, &guardInterceptor)
-	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitCardBefore, &guardInterceptor)
-	var coverInterceptor models.Interceptor = matchInterceptors.CoverInterceptor{}
-	matchInterceptors.RegisterInterceptor(enums.InterceptorPointHitCardBefore, &coverInterceptor)
-
-	matchInterceptors.RegisterAllSpecialCardsInterceptors()
-
-	matchActions.RegisterAllActions()
-	matchActions.RegisterActionsForCards()
+	match.Main()
 
 	http.Handle("POST /login", http.HandlerFunc(appHandlers.Login))
 	http.Handle("POST /logout", appHandlers.AuthCheckMiddleware(appHandlers.ActivityLoggerMiddleware(http.HandlerFunc(appHandlers.Logout))))
