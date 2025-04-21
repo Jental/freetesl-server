@@ -6,6 +6,7 @@ import (
 
 	"github.com/jental/freetesl-server/common"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/match/interceptors"
 	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
@@ -36,7 +37,8 @@ func moveCardToLane(playerState *models.PlayerMatchState, matchState *models.Mat
 	// TODO: maybe do it through interceptor
 	effectsWereUpdated := false
 	if lane.Type == enums.LaneTypeCover && !cardInstance.HasKeyword(dbEnums.CardKeywordGuard) {
-		cardInstance.Effects = append(cardInstance.Effects, &models.Effect{EffectType: enums.EffectTypeCover, StartTurnID: matchState.TurnID})
+		effectDescription := effects.NewEffectSimple(enums.EffectTypeCover, "Cover")
+		cardInstance.Effects = append(cardInstance.Effects, &effects.EffectInstance{Effect: &effectDescription, StartTurnID: matchState.TurnID})
 		effectsWereUpdated = true
 	}
 

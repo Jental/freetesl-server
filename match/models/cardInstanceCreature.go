@@ -5,23 +5,24 @@ import (
 
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/models/enums"
 )
 
 type CardInstanceCreature struct {
 	CardInstanceBase
-	Power   int
-	Health  int
-	Effects []*Effect
+	power   int
+	health  int
+	Effects []*effects.EffectInstance
 	Items   []*CardInstanceItem
 }
 
 func NewCardInstanceCreature(card *dbModels.Card) CardInstanceCreature {
 	return CardInstanceCreature{
 		CardInstanceBase: newCardInstanceBase(card),
-		Power:            card.Power,
-		Health:           card.Health,
-		Effects:          make([]*Effect, 0),
+		power:            card.Power,
+		health:           card.Health,
+		Effects:          make([]*effects.EffectInstance, 0),
 		Items:            make([]*CardInstanceItem, 0),
 	}
 }
@@ -43,6 +44,48 @@ func (cardInstance *CardInstanceCreature) SetIsActive(isActive bool) {
 }
 
 func (cardInstance *CardInstanceCreature) HasEffect(effectType enums.EffectType) bool {
-	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == effectType })
+	idx := slices.IndexFunc(cardInstance.Effects, func(eff *effects.EffectInstance) bool { return eff.Effect.GetType() == effectType })
 	return idx >= 0
+}
+
+func (cardInstance *CardInstanceCreature) getHealthIncrease() int {
+	totalHealth := 0
+	for _, item := range cardInstance.Items {
+		for _, effect := range item.Effects {
+			switch castedEffect := effect.(type) {
+			case *effects.EffectModifyPowerHealth:
+				totalHealth = totalHealth + castedEffect.HealthIncrease
+			}
+		}
+	}
+	return totalHealth
+}
+
+func (cardInstance *CardInstanceCreature) GetComputedHealth() int {
+	return cardInstance.health + cardInstance.getHealthIncrease()
+}
+
+func (cardIntance *CardInstanceCreature) UpdateHealth(updatedComputedHealth int) {
+	cardIntance.health = updatedComputedHealth - cardIntance.getHealthIncrease()
+}
+
+func (cardInstance *CardInstanceCreature) getPowerIncrease() int {
+	totalPower := 0
+	for _, item := range cardInstance.Items {
+		for _, effect := range item.Effects {
+			switch castedEffect := effect.(type) {
+			case *effects.EffectModifyPowerHealth:
+				totalPower = totalPower + castedEffect.PowerIncrease
+			}
+		}
+	}
+	return totalPower
+}
+
+func (cardInstance *CardInstanceCreature) GetComputedPower() int {
+	return cardInstance.power + cardInstance.getPowerIncrease()
+}
+
+func (cardIntance *CardInstanceCreature) UpdatePower(updatedComputedPower int) {
+	cardIntance.power = updatedComputedPower - cardIntance.getPowerIncrease()
 }

@@ -3,19 +3,13 @@ package senders
 import (
 	"log"
 
-	dbModels "github.com/jental/freetesl-server/db/models"
-	"github.com/jental/freetesl-server/db/queries"
 	"github.com/jental/freetesl-server/mappers"
 	"github.com/jental/freetesl-server/match/models"
+	"github.com/jental/freetesl-server/services"
 )
 
 func SendAllCardsToPlayer(playerState *models.PlayerMatchState) error {
-	cards, err := queries.GetAllCards()
-	if err != nil {
-		return err
-	}
-
-	err = sendAllCardsToPlayer(playerState, cards)
+	err := sendAllCardsToPlayer(playerState)
 	if err != nil {
 		return err
 	}
@@ -23,9 +17,14 @@ func SendAllCardsToPlayer(playerState *models.PlayerMatchState) error {
 	return nil
 }
 
-func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModels.Card) error {
+func sendAllCardsToPlayer(playerState *models.PlayerMatchState) error {
 	if playerState.Connection == nil {
 		return nil // Fake opponent has nil connection. TODO: the check should be removed
+	}
+
+	cards, err := services.GetAllCards()
+	if err != nil {
+		return err
 	}
 
 	var dto = mappers.MapToAllCardsDTO(cards)
@@ -40,7 +39,7 @@ func sendAllCardsToPlayer(playerState *models.PlayerMatchState, cards []*dbModel
 	// - of requests from client to be processed
 	// - of messages from server
 	//   ideally with some filtration to avoid sending multiple matchStates one after another
-	err := sendJson(playerState, json)
+	err = sendJson(playerState, json)
 	if err != nil {
 		return err
 	}

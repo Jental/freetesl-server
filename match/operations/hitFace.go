@@ -19,7 +19,7 @@ func hitFaceCheck(playerState *models.PlayerMatchState, cardInstance *models.Car
 
 // logic itself
 func hitFace(opponentState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature) {
-	ReducePlayerHealth(opponentState, cardInstance.Power)
+	ReducePlayerHealth(opponentState, cardInstance.GetComputedPower())
 	cardInstance.SetIsActive(false)
 }
 

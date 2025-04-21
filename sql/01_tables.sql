@@ -61,6 +61,15 @@ CREATE TABLE card_actions (
     actions_parameters_values varchar(1023)
 );
 
+CREATE TABLE card_effects (
+    id serial PRIMARY KEY,
+    name varchar(255),
+    card_id int NOT NULL REFERENCES cards(id),
+    effect_id int NOT NULL,
+    parameter0 varchar(255),     -- for now there are only two parameters 
+    parameter1 varchar(255)
+);
+
 CREATE TABLE players (
     id serial PRIMARY KEY,
     login varchar(255) NOT NULL UNIQUE,

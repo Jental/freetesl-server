@@ -40,7 +40,10 @@ func NewCardInstance(card *dbModels.Card) (CardInstance, error) {
 		inst := NewCardInstanceCreature(card)
 		return &inst, nil
 	case dbEnums.CardTypeItem:
-		inst := NewCardInstanceItem(card)
+		inst, err := NewCardInstanceItem(card)
+		if err != nil {
+			return nil, err
+		}
 		return &inst, nil
 	case dbEnums.CardTypeAction:
 		inst := NewCardInstanceAction(card)

@@ -3,6 +3,7 @@ package coreOperations
 import (
 	"fmt"
 
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -48,9 +49,9 @@ func IncreasePlayerHealth(playerState *models.PlayerMatchState, amount int) {
 }
 
 func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceCreature, lane *models.Lane, amount int) {
-	cardInstance.Health = cardInstance.Health - amount
-
-	if cardInstance.Health <= 0 {
+	updatedHealth := cardInstance.GetComputedHealth() - amount
+	cardInstance.UpdateHealth(updatedHealth)
+	if updatedHealth <= 0 {
 		DiscardCardFromLane(playerState, cardInstance, lane)
 	}
 
@@ -62,17 +63,12 @@ func ReduceCardHealth(playerState *models.PlayerMatchState, cardInstance *models
 	playerState.OpponentState.SendEvent(enums.BackendEventOpponentLanesChanged)
 }
 
-func AddEffect(playerState *models.PlayerMatchState, cardInstance models.CardInstance, effect *models.Effect) error {
+func AddEffect(playerState *models.PlayerMatchState, cardInstance models.CardInstance, effect *effects.EffectInstance) error {
 	creatureCardInstance, castSuccessed := cardInstance.(*models.CardInstanceCreature)
 	if castSuccessed {
 		creatureCardInstance.Effects = append(creatureCardInstance.Effects, effect)
 	} else {
-		itemCardInstance, castSuccessed := cardInstance.(*models.CardInstanceItem)
-		if castSuccessed {
-			itemCardInstance.Effects = append(itemCardInstance.Effects, effect)
-		} else {
-			return fmt.Errorf("AddEffect: effects can only be added to creatures and items")
-		}
+		return fmt.Errorf("AddEffect: effects can only be added to creatures and items")
 	}
 
 	playerState.SendEvent(enums.BackendEventCardInstancesChanged)

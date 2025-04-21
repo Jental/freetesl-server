@@ -12,4 +12,5 @@ type Card struct {
 	Type     enums.CardType
 	Keywords []enums.CardKeyword
 	Races    []byte
+	Effects  []CardEffect
 }

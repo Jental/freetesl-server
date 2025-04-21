@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/jental/freetesl-server/match/coreOperations"
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/match/models"
 	"github.com/jental/freetesl-server/models/enums"
 )
@@ -26,8 +27,9 @@ func (action ShackleAction) Execute(context *models.ActionContext) error {
 
 	log.Printf("[%d]: ShackleAction; cardID: '%d'", context.PlayerState.PlayerID, *context.CardID)
 
-	effect := models.Effect{
-		EffectType:  enums.EffectTypeShackled,
+	effectDescripton := effects.NewEffectSimple(enums.EffectTypeShackled, "Shackled")
+	effect := effects.EffectInstance{
+		Effect:      &effectDescripton,
 		StartTurnID: context.PlayerState.MatchState.TurnID,
 	}
 	coreOperations.AddEffect(context.TargetPlayerState, context.TargetCardInstance, &effect)

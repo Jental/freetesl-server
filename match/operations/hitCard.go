@@ -31,8 +31,8 @@ func hitCard(
 	lane *models.Lane,
 	opponentLane *models.Lane,
 ) {
-	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.Power)
-	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.Power)
+	coreOperations.ReduceCardHealth(opponentState, opponentCardInstance, opponentLane, cardInstance.GetComputedPower())
+	coreOperations.ReduceCardHealth(playerState, cardInstance, lane, opponentCardInstance.GetComputedPower())
 	cardInstance.SetIsActive(false)
 }
 

@@ -1,27 +1,31 @@
 package models
 
 import (
-	"slices"
-
+	"github.com/jental/freetesl-server/common"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/models/enums"
+	"github.com/samber/lo"
 )
 
 type CardInstanceItem struct {
 	CardInstanceBase
-	PowerIncrease  int
-	HealthIncrease int
-	Effects        []*Effect
+	Effects []effects.IEffect
 }
 
-func NewCardInstanceItem(card *dbModels.Card) CardInstanceItem {
+func NewCardInstanceItem(card *dbModels.Card) (CardInstanceItem, error) {
+	effects, err := common.MapErr(card.Effects, func(dbEffect dbModels.CardEffect, _ int) (effects.IEffect, error) {
+		return effects.NewEffect(dbEffect)
+	})
+	if err != nil {
+		return CardInstanceItem{}, err
+	}
+
 	return CardInstanceItem{
 		CardInstanceBase: newCardInstanceBase(card),
-		PowerIncrease:    card.Power,
-		HealthIncrease:   card.Health,
-		Effects:          make([]*Effect, 0),
-	}
+		Effects:          effects,
+	}, nil
 }
 
 func (cardInstance *CardInstanceItem) GetBase() *CardInstanceBase {
@@ -41,6 +45,10 @@ func (cardInstance *CardInstanceItem) SetIsActive(isActive bool) {
 }
 
 func (cardInstance *CardInstanceItem) HasEffect(effectType enums.EffectType) bool {
-	idx := slices.IndexFunc(cardInstance.Effects, func(eff *Effect) bool { return eff.EffectType == effectType })
-	return idx >= 0
+	found := cardInstance.GetEffects(effectType)
+	return len(found) > 0
+}
+
+func (cardInstance *CardInstanceItem) GetEffects(effectType enums.EffectType) []effects.IEffect {
+	return lo.Filter(cardInstance.Effects, func(eff effects.IEffect, _ int) bool { return eff.GetType() == effectType })
 }

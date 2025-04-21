@@ -5,6 +5,7 @@ import (
 
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/match/dtos"
+	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/match/models"
 	"github.com/samber/lo"
 )
@@ -28,11 +29,11 @@ func mapCreatureToCardInstanceDTO(model *models.CardInstanceCreature) dtos.CardI
 	return dtos.CardInstanceDTO{
 		CardID:         model.Card.ID,
 		CardInstanceID: model.CardInstanceID,
-		Power:          model.Power,
-		Health:         model.Health,
+		Power:          model.GetComputedPower(),
+		Health:         model.GetComputedHealth(),
 		Cost:           model.Cost,
 		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
-		Effects:        lo.Map(model.Effects, func(eff *models.Effect, _ int) int { return int(eff.EffectType) }),
+		Effects:        lo.Map(model.Effects, func(eff *effects.EffectInstance, _ int) int { return int(eff.Effect.GetType()) }),
 		// TODO:
 		// - send unique effect types
 		// - some effects (like silence) may overlap other effects - send only ones actual for FE
@@ -43,11 +44,11 @@ func mapItemToCardInstanceDTO(model *models.CardInstanceItem) dtos.CardInstanceD
 	return dtos.CardInstanceDTO{
 		CardID:         model.Card.ID,
 		CardInstanceID: model.CardInstanceID,
-		Power:          model.PowerIncrease,
-		Health:         model.HealthIncrease,
+		Power:          0,
+		Health:         0,
 		Cost:           model.Cost,
 		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
-		Effects:        lo.Map(model.Effects, func(eff *models.Effect, _ int) int { return int(eff.EffectType) }),
+		Effects:        lo.Map(model.Effects, func(eff effects.IEffect, _ int) int { return int(eff.GetType()) }),
 		// TODO:
 		// - send unique effect types
 		// - some effects (like silence) may overlap other effects - send only ones actual for FE
