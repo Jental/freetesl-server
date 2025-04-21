@@ -32,7 +32,17 @@ func (cardInstance *CardInstanceCreature) GetBase() *CardInstanceBase {
 }
 
 func (cardInstance *CardInstanceCreature) HasKeyword(keyword dbEnums.CardKeyword) bool {
-	return cardInstanceHasKeyword(cardInstance, keyword)
+	if cardInstanceHasKeyword(cardInstance, keyword) {
+		return true
+	}
+
+	for _, item := range cardInstance.Items {
+		if cardInstanceHasKeyword(item, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (cardInstance *CardInstanceCreature) IsActive() bool {
