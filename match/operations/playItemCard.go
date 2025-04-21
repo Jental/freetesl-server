@@ -29,8 +29,10 @@ func playItemCardCheck(playerState *models.PlayerMatchState, cardInstance *model
 }
 
 // logic itself
-func playItemCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceItem) {
+func playItemCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceItem, targetCardInstance *models.CardInstanceCreature) {
 	coreOperations.DiscardCardFromHand(playerState, cardInstance)
+	coreOperations.AddItem(playerState, targetCardInstance, cardInstance)
+
 	cardInstance.SetIsActive(false)
 	var currentMana = playerState.GetMana()
 	playerState.SetMana(currentMana - cardInstance.Cost)
@@ -41,18 +43,24 @@ func PlayItemCard(
 	opponentState *models.PlayerMatchState,
 	cardInstance *models.CardInstanceItem,
 	targetCardInstance *models.CardInstanceCreature,
+	isTargetCardFromOpponent bool,
 ) error {
 	err := playItemCardCheck(playerState, cardInstance)
 	if err != nil {
 		return err
 	}
 
-	playItemCard(playerState, cardInstance)
+	playItemCard(playerState, cardInstance, targetCardInstance)
+
+	targetPlayerState := opponentState
+	if !isTargetCardFromOpponent {
+		targetPlayerState = playerState
+	}
 
 	interceptorContext := models.NewInterceptorContext(
 		playerState,
 		opponentState,
-		playerState,
+		targetPlayerState,
 		&cardInstance.Card.ID,
 		&cardInstance.CardInstanceID,
 		nil,

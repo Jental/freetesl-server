@@ -10,7 +10,7 @@ import (
 	"github.com/jental/freetesl-server/models/enums"
 )
 
-func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanceID uuid.UUID) {
+func ApplyCardToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanceID uuid.UUID) {
 	_, playerState, opponentState, err := match.GetCurrentMatchState(playerID)
 	if err != nil {
 		fmt.Printf("[%d]: %s", playerID, err)
@@ -21,7 +21,7 @@ func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanc
 
 	cardInstance, _, exists := playerState.GetCardInstanceFromHand(cardInstanceID)
 	if !exists {
-		fmt.Println(fmt.Errorf("[%d]: card instance with id '%s' is not present in a hand", playerID, cardInstanceID))
+		fmt.Println(fmt.Errorf("[%d]: ApplyCardToCard: card instance with id '%s' is not present in a hand", playerID, cardInstanceID))
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
@@ -33,24 +33,27 @@ func ApplyActionToCard(playerID int, cardInstanceID uuid.UUID, targetCardInstanc
 		isTargetCardFromOpponent = false
 		targetCardInstance, targetLane, _, exists = playerState.GetCardInstanceFromLanes(targetCardInstanceID)
 		if !exists {
-			fmt.Printf("[%d]: card instance with id '%s' is not present", playerID, targetCardInstanceID)
+			fmt.Printf("[%d]: ApplyCardToCard: card instance with id '%s' is not present", playerID, targetCardInstanceID)
 			playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 			opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 			return
 		}
 	}
 
-	actionCardInstance, ok := cardInstance.(*models.CardInstanceAction)
-	if !ok {
-		fmt.Printf("[%d]: ApplyActionToCard: Expected an action card", playerID)
+	err = nil
+	switch castedCardInstance := cardInstance.(type) {
+	case *models.CardInstanceAction:
+		err = operations.PlayActionCard(playerState, opponentState, castedCardInstance, targetCardInstance, isTargetCardFromOpponent, targetLane)
+	case *models.CardInstanceItem:
+		err = operations.PlayItemCard(playerState, opponentState, castedCardInstance, targetCardInstance, isTargetCardFromOpponent)
+	default:
+		fmt.Printf("[%d]: ApplyCardToCard: Expected an action or item card", playerID)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh)
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return
 	}
-
-	err = operations.PlayActionCard(playerState, opponentState, actionCardInstance, targetCardInstance, isTargetCardFromOpponent, targetLane)
 	if err != nil {
-		fmt.Printf("[%d]: %s", playerID, err)
+		fmt.Printf("[%d]: ApplyCardToCard: %s", playerID, err)
 		playerState.SendEvent(enums.BackendEventMatchStateRefresh) // on UI card may be already moved. In this case we need to send match state to FE to reset UI state
 		opponentState.SendEvent(enums.BackendEventOpponentMatchStateRefresh)
 		return

@@ -1,6 +1,6 @@
 package dtos
 
-type ApplyActionToCardDTO struct {
+type ApplyCardToCardDTO struct {
 	CardInstanceID         string `json:"cardInstanceID"`
 	OpponentCardInstanceID string `json:"opponentCardInstanceID"`
 }

@@ -52,8 +52,8 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		go HitCard(playerID, cardInstanceID, opponentCardInstanceID)
 	case "drawCard":
 		go DrawCard(playerID)
-	case "applyActionToCard":
-		var dto dtos.ApplyActionToCardDTO
+	case "applyCardToCard":
+		var dto dtos.ApplyCardToCardDTO
 		mapstructure.Decode(message.Body, &dto)
 		cardInstanceID, err := uuid.Parse(dto.CardInstanceID)
 		if err != nil {
@@ -63,7 +63,7 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		if err != nil {
 			return err
 		}
-		go ApplyActionToCard(playerID, cardInstanceID, opponentCardInstanceID)
+		go ApplyCardToCard(playerID, cardInstanceID, opponentCardInstanceID)
 	case "concede":
 		go Concede(playerID)
 	case "waitedUserActionsCompleted":
