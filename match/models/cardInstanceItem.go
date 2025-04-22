@@ -11,7 +11,8 @@ import (
 
 type CardInstanceItem struct {
 	CardInstanceBase
-	Effects []effects.IEffect
+	Effects        []effects.IEffect
+	EquippedTurnID *int
 }
 
 func NewCardInstanceItem(card *dbModels.Card) (CardInstanceItem, error) {

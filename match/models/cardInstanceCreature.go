@@ -7,6 +7,7 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/models/enums"
+	"github.com/samber/lo"
 )
 
 type CardInstanceCreature struct {
@@ -45,6 +46,15 @@ func (cardInstance *CardInstanceCreature) HasKeyword(keyword dbEnums.CardKeyword
 	return false
 }
 
+func (cardInstance *CardInstanceCreature) GetAllKeywords() []dbEnums.CardKeyword {
+	keywords := make([]dbEnums.CardKeyword, len(cardInstance.Keywords))
+	copy(keywords, cardInstance.Keywords)
+	for _, item := range cardInstance.Items {
+		keywords = append(keywords, item.Keywords...)
+	}
+	return lo.Uniq(keywords)
+}
+
 func (cardInstance *CardInstanceCreature) IsActive() bool {
 	return cardInstanceIsActive(cardInstance)
 }
@@ -53,12 +63,28 @@ func (cardInstance *CardInstanceCreature) SetIsActive(isActive bool) {
 	cardInstanceSetIsActive(cardInstance, isActive)
 }
 
+func (cardInstance *CardInstanceCreature) GetAllEffects() []*effects.EffectInstance {
+	effs := make([]*effects.EffectInstance, len(cardInstance.Effects))
+	copy(effs, cardInstance.Effects)
+	for _, item := range cardInstance.Items {
+		for _, eff := range item.Effects {
+			startTurnID := -1
+			if item.EquippedTurnID != nil {
+				startTurnID = *item.EquippedTurnID
+			}
+			effectInstance := effects.NewEffectInstance(eff, startTurnID, &item.CardInstanceID)
+			effs = append(effs, &effectInstance)
+		}
+	}
+	return effs
+}
+
 func (cardInstance *CardInstanceCreature) HasEffect(effectType enums.EffectType) bool {
-	idx := slices.IndexFunc(cardInstance.Effects, func(eff *effects.EffectInstance) bool { return eff.Effect.GetType() == effectType })
+	idx := slices.IndexFunc(cardInstance.GetAllEffects(), func(eff *effects.EffectInstance) bool { return eff.Effect.GetType() == effectType })
 	return idx >= 0
 }
 
-func (cardInstance *CardInstanceCreature) getHealthIncrease() int {
+func (cardInstance *CardInstanceCreature) GetHealthIncrease() int {
 	totalHealth := 0
 	for _, item := range cardInstance.Items {
 		for _, effect := range item.Effects {
@@ -72,14 +98,14 @@ func (cardInstance *CardInstanceCreature) getHealthIncrease() int {
 }
 
 func (cardInstance *CardInstanceCreature) GetComputedHealth() int {
-	return cardInstance.health + cardInstance.getHealthIncrease()
+	return cardInstance.health + cardInstance.GetHealthIncrease()
 }
 
 func (cardIntance *CardInstanceCreature) UpdateHealth(updatedComputedHealth int) {
-	cardIntance.health = updatedComputedHealth - cardIntance.getHealthIncrease()
+	cardIntance.health = updatedComputedHealth - cardIntance.GetHealthIncrease()
 }
 
-func (cardInstance *CardInstanceCreature) getPowerIncrease() int {
+func (cardInstance *CardInstanceCreature) GetPowerIncrease() int {
 	totalPower := 0
 	for _, item := range cardInstance.Items {
 		for _, effect := range item.Effects {
@@ -93,9 +119,9 @@ func (cardInstance *CardInstanceCreature) getPowerIncrease() int {
 }
 
 func (cardInstance *CardInstanceCreature) GetComputedPower() int {
-	return cardInstance.power + cardInstance.getPowerIncrease()
+	return cardInstance.power + cardInstance.GetPowerIncrease()
 }
 
 func (cardIntance *CardInstanceCreature) UpdatePower(updatedComputedPower int) {
-	cardIntance.power = updatedComputedPower - cardIntance.getPowerIncrease()
+	cardIntance.power = updatedComputedPower - cardIntance.GetPowerIncrease()
 }

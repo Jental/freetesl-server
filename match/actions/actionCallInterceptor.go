@@ -20,6 +20,7 @@ func (ic ActionCallInterceptor) Execute(context *models.InterceptorContext) erro
 		context.PlayerState,
 		context.OpponentState,
 		&ic.CardID,
+		context.CardInstanceID,
 		ic.ActionParametersValues,
 		context.TargetPlayerState,
 		context.TargetCardInstance,

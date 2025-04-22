@@ -19,7 +19,7 @@ func NewEffect(dbEffect dbModels.CardEffect) (IEffect, error) {
 	case enums.EffectTypeCover, enums.EffectTypeShackled, enums.EffectTypeWounded:
 		effect := NewEffectSimple(effectType, dbEffect.Name)
 		return &effect, nil
-	case enums.EffectTypeModifyPowerHealth:
+	case enums.EffectTypeModifiedPowerHealth:
 		if dbEffect.Parameter0 == nil {
 			return nil, fmt.Errorf("NewEffect: parameter0 is required for effect with a type '%d'", effectType)
 		}

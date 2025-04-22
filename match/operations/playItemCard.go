@@ -29,9 +29,9 @@ func playItemCardCheck(playerState *models.PlayerMatchState, cardInstance *model
 }
 
 // logic itself
-func playItemCard(playerState *models.PlayerMatchState, cardInstance *models.CardInstanceItem, targetCardInstance *models.CardInstanceCreature) {
+func playItemCard(playerState *models.PlayerMatchState, matchState *models.Match, cardInstance *models.CardInstanceItem, targetCardInstance *models.CardInstanceCreature) {
 	coreOperations.DiscardCardFromHand(playerState, cardInstance)
-	coreOperations.AddItem(playerState, targetCardInstance, cardInstance)
+	coreOperations.AddItem(playerState, matchState, targetCardInstance, cardInstance)
 
 	cardInstance.SetIsActive(false)
 	var currentMana = playerState.GetMana()
@@ -41,6 +41,7 @@ func playItemCard(playerState *models.PlayerMatchState, cardInstance *models.Car
 func PlayItemCard(
 	playerState *models.PlayerMatchState,
 	opponentState *models.PlayerMatchState,
+	matchState *models.Match,
 	cardInstance *models.CardInstanceItem,
 	targetCardInstance *models.CardInstanceCreature,
 	isTargetCardFromOpponent bool,
@@ -50,7 +51,7 @@ func PlayItemCard(
 		return err
 	}
 
-	playItemCard(playerState, cardInstance, targetCardInstance)
+	playItemCard(playerState, matchState, cardInstance, targetCardInstance)
 
 	targetPlayerState := opponentState
 	if !isTargetCardFromOpponent {

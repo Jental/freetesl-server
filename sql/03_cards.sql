@@ -25,4 +25,4 @@ VALUES (4, 'deal_damage_to_creature', 'operations.cardPlay', '1'),
        (5, 'heal', 'operations.cardPlay', '3');
 
 INSERT INTO card_effects (card_id, effect_id, name, parameter0, parameter1)
-VALUES (6, 3, 'ModifyPowerHealth: +1/+1', '1', '1');
+VALUES (6, 3, 'ModifiedPowerHealth: +1/+1', '1', '1');

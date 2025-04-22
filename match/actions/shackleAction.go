@@ -28,10 +28,7 @@ func (action ShackleAction) Execute(context *models.ActionContext) error {
 	log.Printf("[%d]: ShackleAction; cardID: '%d'", context.PlayerState.PlayerID, *context.CardID)
 
 	effectDescripton := effects.NewEffectSimple(enums.EffectTypeShackled, "Shackled")
-	effect := effects.EffectInstance{
-		Effect:      &effectDescripton,
-		StartTurnID: context.PlayerState.MatchState.TurnID,
-	}
+	effect := effects.NewEffectInstance(&effectDescripton, context.PlayerState.MatchState.TurnID, context.CardInstanceID)
 	coreOperations.AddEffect(context.TargetPlayerState, context.TargetCardInstance, &effect)
 
 	return nil
