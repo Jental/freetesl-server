@@ -2,19 +2,19 @@ package models
 
 import (
 	"fmt"
-	"slices"
 
 	"github.com/google/uuid"
 	dbEnums "github.com/jental/freetesl-server/db/enums"
 	dbModels "github.com/jental/freetesl-server/db/models"
+	"github.com/samber/lo"
 )
 
 type CardInstanceBase struct {
-	Card           *dbModels.Card
-	CardInstanceID uuid.UUID
-	Cost           int
-	Keywords       []dbEnums.CardKeyword // all card types can have keywords, at least some, e.g. Prophecy
-	IsActive       bool
+	Card             *dbModels.Card
+	CardInstanceID   uuid.UUID
+	Cost             int
+	KeywordInstances []*KeywordInstance // all card types can have keywords, at least some, e.g. Prophecy
+	IsActive         bool
 }
 
 type CardInstance interface {
@@ -25,12 +25,16 @@ type CardInstance interface {
 }
 
 func newCardInstanceBase(card *dbModels.Card) CardInstanceBase {
+	cardInstanceID := uuid.New()
 	return CardInstanceBase{
 		Card:           card,
-		CardInstanceID: uuid.New(),
+		CardInstanceID: cardInstanceID,
 		Cost:           card.Cost,
-		Keywords:       card.Keywords,
-		IsActive:       false,
+		KeywordInstances: lo.Map(card.Keywords, func(kw dbEnums.CardKeyword, _ int) *KeywordInstance {
+			kwInst := NewKeywordInstance(kw, nil, cardInstanceID)
+			return &kwInst
+		}),
+		IsActive: false,
 	}
 }
 
@@ -57,8 +61,12 @@ func NewCardInstance(card *dbModels.Card) (CardInstance, error) {
 }
 
 func cardInstanceHasKeyword(cardInstance CardInstance, keyword dbEnums.CardKeyword) bool {
-	idx := slices.Index(cardInstance.GetBase().Keywords, keyword)
-	return idx >= 0
+	for _, kw := range cardInstance.GetBase().KeywordInstances {
+		if kw.Keyword == keyword {
+			return true
+		}
+	}
+	return false
 }
 
 func cardInstanceIsActive(cardInstance CardInstance) bool {

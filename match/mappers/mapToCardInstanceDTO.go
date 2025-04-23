@@ -3,7 +3,6 @@ package mappers
 import (
 	"errors"
 
-	dbEnums "github.com/jental/freetesl-server/db/enums"
 	"github.com/jental/freetesl-server/match/dtos"
 	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/match/models"
@@ -26,11 +25,23 @@ func MapToCardInstanceDTO(model models.CardInstance) (dtos.CardInstanceDTO, erro
 }
 
 func mapToEffectInstanceDTO(model *effects.EffectInstance) dtos.EffectInstanceDTO {
-	sourceCardInstanceID := model.SourceCardInstanceID.String()
+	var sourceCardInstanceIDStr *string = nil
+	if model.SourceCardInstanceID != nil {
+		str := model.SourceCardInstanceID.String()
+		sourceCardInstanceIDStr = &str
+	}
 	return dtos.EffectInstanceDTO{
 		ID:                   byte(model.Effect.GetType()),
 		Description:          model.Effect.GetStringDescription(),
-		SourceCardInstanceID: &sourceCardInstanceID,
+		SourceCardInstanceID: sourceCardInstanceIDStr,
+	}
+}
+
+func mapToKeywordInstanceDTO(model *models.KeywordInstance) dtos.KeywordInstanceDTO {
+	sourceCardInstanceIDStr := model.SourceCardInstanceID.String()
+	return dtos.KeywordInstanceDTO{
+		ID:                   byte(model.Keyword),
+		SourceCardInstanceID: &sourceCardInstanceIDStr,
 	}
 }
 
@@ -43,12 +54,13 @@ func mapCreatureToCardInstanceDTO(model *models.CardInstanceCreature) dtos.CardI
 		Health:         model.GetComputedHealth(),
 		HealthMod:      model.GetHealthIncrease(),
 		Cost:           model.Cost,
-		Keywords:       lo.Map(model.GetAllKeywords(), func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
+		Keywords: lo.Map(model.GetAllKeywords(), func(kwd *models.KeywordInstance, _ int) dtos.KeywordInstanceDTO {
+			return mapToKeywordInstanceDTO(kwd)
+		}),
 		Effects: lo.Map(model.GetAllEffects(), func(eff *effects.EffectInstance, _ int) dtos.EffectInstanceDTO {
 			return mapToEffectInstanceDTO(eff)
 		}),
-		// TODO:
-		// - send unique effect types
+		// TODO: maybe send unique effect types
 	}
 }
 
@@ -59,8 +71,8 @@ func mapItemToCardInstanceDTO(model *models.CardInstanceItem) dtos.CardInstanceD
 		Power:          0,
 		Health:         0,
 		Cost:           model.Cost,
-		Keywords:       make([]int, 0),                    // there are no keywords valid for item, only definitions
-		Effects:        make([]dtos.EffectInstanceDTO, 0), // there are no effect instances valid for item, only effect definitions
+		Keywords:       make([]dtos.KeywordInstanceDTO, 0), // there are no keywords valid for item, only definitions
+		Effects:        make([]dtos.EffectInstanceDTO, 0),  // there are no effect instances valid for an item, only effect definitions
 	}
 }
 
@@ -71,11 +83,10 @@ func mapActionToCardInstanceDTO(model *models.CardInstanceAction) dtos.CardInsta
 		Power:          0,
 		Health:         0,
 		Cost:           model.Cost,
-		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
-		Effects:        nil,
-		// TODO:
-		// - send unique effect types
-		// - some effects (like silence) may overlap other effects - send only ones actual for FE
+		Keywords: lo.Map(model.KeywordInstances, func(kwd *models.KeywordInstance, _ int) dtos.KeywordInstanceDTO {
+			return mapToKeywordInstanceDTO(kwd)
+		}),
+		Effects: make([]dtos.EffectInstanceDTO, 0), // there are no effect instances valid for an action
 	}
 }
 
@@ -86,10 +97,9 @@ func mapSupportToCardInstanceDTO(model *models.CardInstanceSupport) dtos.CardIns
 		Power:          0,
 		Health:         0,
 		Cost:           model.Cost,
-		Keywords:       lo.Map(model.Keywords, func(kwd dbEnums.CardKeyword, _ int) int { return int(kwd) }),
-		Effects:        nil,
-		// TODO:
-		// - send unique effect types
-		// - some effects (like silence) may overlap other effects - send only ones actual for FE
+		Keywords: lo.Map(model.KeywordInstances, func(kwd *models.KeywordInstance, _ int) dtos.KeywordInstanceDTO {
+			return mapToKeywordInstanceDTO(kwd)
+		}),
+		Effects: make([]dtos.EffectInstanceDTO, 0), // TODO: supports can have effects, e.g. Last Gasp
 	}
 }

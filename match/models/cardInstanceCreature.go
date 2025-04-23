@@ -7,7 +7,6 @@ import (
 	dbModels "github.com/jental/freetesl-server/db/models"
 	"github.com/jental/freetesl-server/match/effects"
 	"github.com/jental/freetesl-server/models/enums"
-	"github.com/samber/lo"
 )
 
 type CardInstanceCreature struct {
@@ -46,13 +45,13 @@ func (cardInstance *CardInstanceCreature) HasKeyword(keyword dbEnums.CardKeyword
 	return false
 }
 
-func (cardInstance *CardInstanceCreature) GetAllKeywords() []dbEnums.CardKeyword {
-	keywords := make([]dbEnums.CardKeyword, len(cardInstance.Keywords))
-	copy(keywords, cardInstance.Keywords)
+func (cardInstance *CardInstanceCreature) GetAllKeywords() []*KeywordInstance {
+	keywords := make([]*KeywordInstance, len(cardInstance.KeywordInstances))
+	copy(keywords, cardInstance.KeywordInstances)
 	for _, item := range cardInstance.Items {
-		keywords = append(keywords, item.Keywords...)
+		keywords = append(keywords, item.KeywordInstances...)
 	}
-	return lo.Uniq(keywords)
+	return keywords
 }
 
 func (cardInstance *CardInstanceCreature) IsActive() bool {
