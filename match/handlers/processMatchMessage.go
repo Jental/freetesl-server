@@ -23,13 +23,29 @@ func ProcessMatchMessage(playerID int, message models.PartiallyParsedMessage) er
 		if err != nil {
 			return err
 		}
+		var cardInstanceToReplaceID *uuid.UUID
+		if dto.CardInstanceToReplaceID != nil && *dto.CardInstanceToReplaceID != "" {
+			id, err := uuid.Parse(*dto.CardInstanceToReplaceID)
+			if err != nil {
+				return err
+			}
+			cardInstanceToReplaceID = &id
+		}
 		laneID := enums.LanePosition(dto.LaneID)
-		go MoveCardToLane(playerID, cardInstanceID, laneID)
+		go MoveCardToLane(playerID, cardInstanceID, laneID, cardInstanceToReplaceID)
 	case "drawCardToLane":
 		var dto dtos.DrawCardToLaneRequestDTO
 		mapstructure.Decode(message.Body, &dto)
+		var cardInstanceToReplaceID *uuid.UUID
+		if dto.CardInstanceToReplaceID != nil && *dto.CardInstanceToReplaceID != "" {
+			id, err := uuid.Parse(*dto.CardInstanceToReplaceID)
+			if err != nil {
+				return err
+			}
+			cardInstanceToReplaceID = &id
+		}
 		laneID := enums.LanePosition(dto.LaneID)
-		go DrawCardToLane(playerID, laneID)
+		go DrawCardToLane(playerID, laneID, cardInstanceToReplaceID)
 	case "hitFace":
 		var dto dtos.HitFaceDTO
 		mapstructure.Decode(message.Body, &dto)
